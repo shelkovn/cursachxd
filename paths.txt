@@ -1,0 +1,7 @@
+INSERT INTO Resources (ImagePath, Title, AuthorId, UploadDate)
+VALUES 
+    ('/Source/3max.png', 'vashu', 1, GETDATE()),
+    ('/Source/dante.png', 'STYLISH', 1, DATEADD(day, -1, GETDATE())),
+    ('/Source/spinningstar.gif', 'spinny', 1, DATEADD(day, -3, GETDATE())),
+    ('/Source/bubbles.gif', 'pop', 1, DATEADD(day, -3, GETDATE())),
+    ('/Source/pixelstar-pixel.gif', 'Star', 1, DATEADD(day, -3, GETDATE()));

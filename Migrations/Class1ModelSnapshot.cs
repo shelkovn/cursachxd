@@ -48,7 +48,7 @@ namespace micpix.Migrations
 
                     b.HasIndex("AuthorId");
 
-                    b.ToTable("ResourcesSet");
+                    b.ToTable("Resources", (string)null);
                 });
 
             modelBuilder.Entity("micpix.Server.Users", b =>
@@ -68,7 +68,7 @@ namespace micpix.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("UserSet");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("micpix.Server.Resources", b =>

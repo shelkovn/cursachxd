@@ -13,7 +13,9 @@ namespace micpix.Server
     {
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer("Server=DBSRV\\OV2025;Database=micpix;TrustServerCertificate=True;Trusted_Connection=True;");
+            //"Server=DBSRV\\OV2025;Database=micpix;TrustServerCertificate=True;Trusted_Connection=True;" - сервер колледжа
+            //"Server=DESKTOP-L229MBG\\SQLEXPRESS;Database=micpix;TrustServerCertificate=True;Trusted_Connection=True;" - сервер на домашнем пк
+            optionsBuilder.UseSqlServer("Server=DESKTOP-L229MBG\\SQLEXPRESS;Database=micpix;TrustServerCertificate=True;Trusted_Connection=True;");
         }
 
         public DbSet<Users> UserSet { get; set; }
