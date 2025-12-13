@@ -1,0 +1,23 @@
+﻿<UserControl x:Class="micpix.View.UserControls.MainpageElement"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:micpix.View.UserControls"
+             xmlns:gif="http://wpfanimatedgif.codeplex.com"
+             mc:Ignorable="d" 
+             d:DesignHeight="180" d:DesignWidth="130">
+    <Grid MaxHeight="180" MaxWidth="130" >
+        <Grid.RowDefinitions>
+            <RowDefinition Height="130"/>
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <Image gif:ImageBehavior.AnimatedSource="{Binding imgsrc}" Stretch="Uniform"/>
+        <WrapPanel Grid.Row="1">
+            <Label FontSize="14" Content="{Binding title}" Style="{StaticResource base}" Foreground="{StaticResource darkdark}"/>
+            <Label FontSize="14" Content="{Binding uploaddate}" Style="{StaticResource base}" Foreground="{StaticResource darkdark}" HorizontalAlignment="Right"/>
+            <Label Grid.Row="2" FontSize="14" Content="{Binding author}" Style="{StaticResource base}" Foreground="{StaticResource dark}"/>
+        </WrapPanel>
+        
+    </Grid>
+</UserControl>
