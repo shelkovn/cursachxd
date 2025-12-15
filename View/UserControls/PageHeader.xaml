@@ -10,7 +10,7 @@
         <DockPanel Grid.ColumnSpan="2"  Background="{StaticResource dark}">
             <Image Source="{Binding logosrc}" VerticalAlignment="Center" Margin="10"/>
             <Label Content="{Binding pagetitle}" VerticalAlignment="Center" Margin="5" Style="{StaticResource base}" FontSize="36" Foreground="{StaticResource lightblue}"/>
-            <Label Content="{Binding logintext}" Margin="5" Style="{StaticResource base}" Foreground="{StaticResource darkblue}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+            <Label Content="{Binding logintext}" MouseLeftButtonUp="LoginClick" Margin="5" Style="{StaticResource base}" Foreground="{StaticResource darkblue}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
         </DockPanel>
     </Grid>
 </UserControl>

@@ -51,6 +51,33 @@ namespace micpix.Migrations
                     b.ToTable("Resources", (string)null);
                 });
 
+            modelBuilder.Entity("micpix.Server.UserCredential", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Salt")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("UserCredentials", (string)null);
+                });
+
             modelBuilder.Entity("micpix.Server.Users", b =>
                 {
                     b.Property<int>("Id")
@@ -80,6 +107,17 @@ namespace micpix.Migrations
                         .IsRequired();
 
                     b.Navigation("Author");
+                });
+
+            modelBuilder.Entity("micpix.Server.UserCredential", b =>
+                {
+                    b.HasOne("micpix.Server.Users", "User")
+                        .WithOne()
+                        .HasForeignKey("micpix.Server.UserCredential", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("micpix.Server.Users", b =>

@@ -3,6 +3,7 @@ using micpix.View.UserControls;
 using micpix.View.Windows;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.ObjectModel;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -23,6 +24,7 @@ namespace WpfApp1
     {
         private resourceuploadwindow uploadWindow;
         private CollageMakerWindow collageWindow;
+        private LoginWindow loginWindow;
         static Class1 db = new Class1 ();
         IEnumerable<Resources> resset = db.ResourcesSet.Include(r => r.Author);
         IEnumerable<Resources> resset_filtered = db.ResourcesSet.Include(r => r.Author);
@@ -40,6 +42,29 @@ namespace WpfApp1
             {
                 MessageBox.Show($"Ошибка при загрузке: {ex.Message}");
             }
+
+            pageheader.LoginAction = () =>
+            {
+                if (App.IsLoggedIn)
+                {
+                    MessageBox.Show($"Здесь обязательно будет страница профиля для {App.CurrentUsername}", "Когда нибудь попозже");
+
+                }
+                else
+                {
+                    if (loginWindow == null || !loginWindow.IsLoaded)
+                    {
+                        loginWindow = new LoginWindow();
+                        loginWindow.Show();
+                        this.Hide();
+                    }
+                    else
+                    {
+                        loginWindow.Activate();
+                        this.Hide();
+                    }
+                }
+            };
             LoadResources();
         }
 
@@ -72,14 +97,33 @@ namespace WpfApp1
 
         private void Uploader_Window_Click(object sender, RoutedEventArgs e)
         {
-            if (uploadWindow == null || !uploadWindow.IsLoaded)
+
+            if (App.IsLoggedIn)
             {
-                uploadWindow = new resourceuploadwindow();
-                uploadWindow.Show();
+                if (uploadWindow == null || !uploadWindow.IsLoaded)
+                {
+                    uploadWindow = new resourceuploadwindow();
+                    uploadWindow.Show();
+                }
+                else
+                {
+                    uploadWindow.Activate();
+                }
             }
             else
             {
-                uploadWindow.Activate();
+                MessageBox.Show($"Для загрузки файлов необходимо войти в аккаунт", "Вы не авторизованы");
+                if (loginWindow == null || !loginWindow.IsLoaded)
+                {
+                    loginWindow = new LoginWindow();
+                    loginWindow.Show();
+                    this.Hide();
+                }
+                else
+                {
+                    loginWindow.Activate();
+                    this.Hide();
+                }
             }
         }
 

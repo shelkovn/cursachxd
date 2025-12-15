@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using WpfApp1;
 
 namespace micpix.View.Windows
 {
@@ -34,7 +35,7 @@ namespace micpix.View.Windows
                 LoadImageToCanvas(selectedImagePath);
                 UpdateImageInfo(selectedImagePath);
 
-                // Set default asset name to filename without extension
+                // по умолчанию название загруженного файла
                 string fileName = System.IO.Path.GetFileNameWithoutExtension(selectedImagePath);
                 assetNameTextBox.Text = fileName;
             }
@@ -44,7 +45,7 @@ namespace micpix.View.Windows
         {
             try
             {
-                // Create and configure image
+                // превью изображения (для гиф первый кадр)
                 BitmapImage bitmap = new BitmapImage();
                 bitmap.BeginInit();
                 bitmap.UriSource = new Uri(imagePath);
@@ -58,53 +59,43 @@ namespace micpix.View.Windows
                 };
                 System.Windows.Controls.Image img = new System.Windows.Controls.Image{Source = bitmap};
                 vb.Child = img;
+                imageCanvas.Children.Clear();
                 imageCanvas.Children.Add(vb);
 
-                // Привязка размеров Viewbox к Canvas
                 vb.SetBinding(WidthProperty, new Binding("ActualWidth") { Source = imageCanvas });
                 vb.SetBinding(HeightProperty, new Binding("ActualHeight") { Source = imageCanvas });
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error loading image: {ex.Message}");
+                MessageBox.Show($"Ошибка при загрузке: {ex.Message}");
             }
         }
 
-        private void UpdateImageInfo(string imagePath)
+        private void UpdateImageInfo(string imagePath) //заполнить таблицу с информацией об элементе
         {
             try
             {
                 FileInfo fileInfo = new FileInfo(imagePath);
                 BitmapImage bitmap = new BitmapImage(new Uri(imagePath));
-
-                // Get file format from extension
                 imageFormat = System.IO.Path.GetExtension(imagePath).ToUpper().TrimStart('.');
-
-                // Get dimensions
                 imageDimensions = $"{bitmap.PixelWidth}x{bitmap.PixelHeight}";
-
-                // Get file size
                 fileSize = (fileInfo.Length / 1024f).ToString("0.0") + " KB";
-
-                // Reset frame count
                 frameCount = "-";
 
-                // If it's a GIF, get frame count
+                // попытка посчитать кадры если это гиф
                 if (imageFormat.ToLower() == "gif")
                 {
                     int frames = GetGifFrameCount(imagePath);
                     frameCount = frames.ToString();
                 }
-
-                // Update UI labels
                 formatLabel.Content = imageFormat;
                 dimensionsLabel.Content = imageDimensions;
                 sizeLabel.Content = fileSize;
-                lengthLabel.Content = frameCount; // Now showing just the frame count number
+                lengthLabel.Content = frameCount;
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error reading image info: {ex.Message}");
+                MessageBox.Show($"Ошибка при загрузке: {ex.Message}");
             }
         }
 
@@ -112,12 +103,12 @@ namespace micpix.View.Windows
         {
             try
             {
-                // Read GIF file as binary and count frame separators
+                // попытка прочитать гиф по байтам чтобы узнать количество кадров
                 byte[] gifData = File.ReadAllBytes(gifPath);
                 int frameCount = 0;
 
-                // Look for GIF frame markers (0x2C - Image Descriptor)
-                for (int i = 13; i < gifData.Length - 1; i++)
+                // 0x2C - Image Descriptor
+                for (int i = 1; i < gifData.Length - 1; i++)
                 {
                     if (gifData[i] == 0x2C && gifData[i + 1] == 0x00)
                     {
@@ -125,12 +116,12 @@ namespace micpix.View.Windows
                     }
                 }
 
-                // Return at least 1 frame
+                // если кадры пустые, вернуть 1 
                 return frameCount > 0 ? frameCount : 1;
             }
             catch
             {
-                return 1; // Default to 1 frame if we can't read it
+                return 1; // при любой ошибке вернуть 1
             }
         }
 
@@ -138,13 +129,13 @@ namespace micpix.View.Windows
         {
             if (string.IsNullOrEmpty(selectedImagePath))
             {
-                MessageBox.Show("Please select an image first.");
+                MessageBox.Show("Выберите изображение.");
                 return;
             }
 
             if (string.IsNullOrEmpty(assetNameTextBox.Text))
             {
-                MessageBox.Show("Please enter an asset name.");
+                MessageBox.Show("Введите имя элемента.");
                 return;
             }
 
@@ -152,44 +143,39 @@ namespace micpix.View.Windows
             {
                 string fileName = System.IO.Path.GetFileName(selectedImagePath);
                 string projectPath = GetProjectPath();
-
-                // Debug: Check if we're getting the right path
-                //MessageBox.Show($"Project path: {projectPath}");
-
                 string destinationDir = System.IO.Path.Combine(projectPath, "Source");
                 string destinationPath = System.IO.Path.Combine(destinationDir, fileName);
                 string imagePathForDb = "/Source/" + fileName;
 
-                // Check if filename already exists in database
+                // проверка на дубликаты по имени или пути файла
                 using (var db = new Class1())
                 {
                     bool filenameExists = db.ResourcesSet.Any(r => r.ImagePath == imagePathForDb);
                     if (filenameExists)
                     {
-                        MessageBox.Show($"A file with the name '{fileName}' already exists in the database. Please rename the file or choose a different one.");
+                        MessageBox.Show($"Файл с именем '{fileName}' уже существует. Пожалуйста, измените название.");
                         return;
                     }
 
                     bool assetNameExists = db.ResourcesSet.Any(r => r.Title == assetNameTextBox.Text);
                     if (assetNameExists)
                     {
-                        MessageBox.Show($"An asset with the name '{assetNameTextBox.Text}' already exists. Please choose a different name.");
+                        MessageBox.Show($"Элемент с названием '{assetNameTextBox.Text}' уже существует. Пожалуйста, измените название.");
                         return;
                     }
                 }
 
-                // Create directory if it doesn't exist
+                // создать директорию если нужной папки не существует
                 if (!Directory.Exists(destinationDir))
                 {
                     Directory.CreateDirectory(destinationDir);
-                    MessageBox.Show($"Created directory: {destinationDir}");
+                    MessageBox.Show($"Создан путь: {destinationDir}");
                 }
 
-                // Check if file already exists in destination
                 if (File.Exists(destinationPath))
                 {
-                    var result = MessageBox.Show($"A file named '{fileName}' already exists in the Source folder. Do you want to overwrite it?",
-                                                "File Exists",
+                    var result = MessageBox.Show($"Файл с именем '{fileName}' уже находится в директории. Перезаписать?",
+                                                "Файл уже существует",
                                                 MessageBoxButton.YesNo,
                                                 MessageBoxImage.Question);
 
@@ -199,7 +185,7 @@ namespace micpix.View.Windows
                     }
                 }
 
-                // Copy the file with error handling
+                // переносим файл в директорию
                 try
                 {
                     File.Copy(selectedImagePath, destinationPath, true);
@@ -208,26 +194,29 @@ namespace micpix.View.Windows
                 }
                 catch (Exception copyEx)
                 {
-                    MessageBox.Show($"Error copying file: {copyEx.Message}");
+                    MessageBox.Show($"Ошибка при загрузке: {copyEx.Message}");
                     return;
                 }
 
-                // Verify the file was copied
+                // проверка что файл успешно скопировался
                 if (!File.Exists(destinationPath))
                 {
-                    MessageBox.Show("File copy failed - destination file doesn't exist.");
+                    MessageBox.Show("Ошибка - файла не загрузился.");
                     return;
                 }
 
-
-
-                // Save to database
+                // добавить в БД
                 using (var db = new Class1())
                 {
+                    var currentUser = db.UserSet.FirstOrDefault(u => u.Id == App.CurrentUserId);
+
+                    //MessageBox.Show($"Загрузка файлов от имени {currentUser.Username}, id {App.CurrentUserId}"); //debug
+
                     var resource = new Resources()
                     {
                         Title = assetNameTextBox.Text,
-                        Author = db.UserSet.First(), //placeholder
+                        Author = currentUser, //db.UserSet.First(), //заглушка до создания авторизации
+                        AuthorId = App.CurrentUserId,
                         ImagePath = imagePathForDb,
                         UploadDate = DateTime.Now
                     };
@@ -236,12 +225,12 @@ namespace micpix.View.Windows
                     db.SaveChanges();
                 }
 
-                MessageBox.Show("Image uploaded successfully!");
+                MessageBox.Show($"Спасибо за новый элемент, {App.CurrentUsername}");
                 this.Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error uploading image: {ex.Message}");
+                MessageBox.Show($"Ошибка при загрузке: {ex.Message}");
             }
             
         }
@@ -250,19 +239,11 @@ namespace micpix.View.Windows
         {
             try
             {
-                // Try different possible project structures
+                //перебор различных возможных путей в поиске места для папки для элементов
                 string basePath = AppDomain.CurrentDomain.BaseDirectory;
-
-                // Option 1: For debug/bin folder structure
                 string path1 = System.IO.Path.GetFullPath(System.IO.Path.Combine(basePath, @"..\..\..\"));
-
-                // Option 2: For different folder structure
                 string path2 = System.IO.Path.GetFullPath(System.IO.Path.Combine(basePath, @"..\..\"));
-
-                // Option 3: Just use the current directory
                 string path3 = Directory.GetCurrentDirectory();
-
-                // Check which one exists and has a Source folder or can create one
                 if (Directory.Exists(path1))
                     return path1;
                 else if (Directory.Exists(path2))

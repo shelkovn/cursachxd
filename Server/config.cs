@@ -20,6 +20,7 @@ namespace micpix.Server
 
         public DbSet<Users> UserSet { get; set; }
         public DbSet<Resources> ResourcesSet { get; set; }
+        public DbSet<UserCredential> UserCredentials { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -30,7 +31,16 @@ namespace micpix.Server
                 .HasOne(r => r.Author)
                 .WithMany(u => u.Resources)
                 .HasForeignKey(r => r.AuthorId)
-                .OnDelete(DeleteBehavior.Restrict); // or Cascade based on your needs
+                .OnDelete(DeleteBehavior.Restrict); //нельзя удалять пользователя если в базе остались созданные ими элементы
+
+            modelBuilder.Entity<UserCredential>()
+           .ToTable("UserCredentials");  
+
+            modelBuilder.Entity<UserCredential>()
+                .HasOne(uc => uc.User)
+                .WithOne()  
+                .HasForeignKey<UserCredential>(uc => uc.UserId)
+                .OnDelete(DeleteBehavior.Cascade);  // удалить информацию о пароле при удалении пользователя
         }
     }
 }

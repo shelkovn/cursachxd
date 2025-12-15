@@ -20,7 +20,7 @@ namespace micpix.View.UserControls
     /// </summary>
     public partial class PageHeader : UserControl
     {
-
+        public Action LoginAction { get; set; }
 
         public string pagetitle
         {
@@ -45,7 +45,6 @@ namespace micpix.View.UserControls
             DependencyProperty.Register("logintext", typeof(string), typeof(PageHeader), new PropertyMetadata(string.Empty));
 
 
-
         public string logosrc
         {
             get { return (string)GetValue(logosrcProperty); }
@@ -62,6 +61,11 @@ namespace micpix.View.UserControls
         {
             InitializeComponent();
             DataContext = this;
+        }
+
+        private void LoginClick(object sender, MouseButtonEventArgs e)
+        {
+            LoginAction?.Invoke();
         }
     }
 }

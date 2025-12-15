@@ -13,7 +13,7 @@ namespace micpix.Server
         required public string Username { get; set; }
         public DateTime RegistrationDate { get; set; }
 
-        // Navigation property
+        // Navigation properties
         public virtual ICollection<Resources> Resources { get; set; } = new List<Resources>();
     }
 }

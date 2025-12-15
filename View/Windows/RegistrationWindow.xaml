@@ -12,21 +12,27 @@
             <RowDefinition Height="0.2*"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
-        <uc:PageHeader pagetitle="Регистрация" logintext="Вход"/>
+        <uc:PageHeader x:Name="pageheader" pagetitle="Регистрация" logintext="Вход"/>
 
-        <StackPanel Grid.Row="1" VerticalAlignment="Center" Orientation="Vertical">
+        <StackPanel Grid.Row="1" VerticalAlignment="Center" Orientation="Vertical" Margin="0,0,0,30">
             <Label Style="{StaticResource base}" FontSize="22" Content="Имя пользователя" Margin="15"/>
-            <Border Style="{StaticResource textboxborder}" Grid.ColumnSpan="2" Margin="15,5">
+            <Border Style="{StaticResource textboxborder}" Grid.ColumnSpan="2" Margin="15,0,15,5">
                 <TextBox x:Name="usernametextbox" Style="{StaticResource inputtextbox}"  Padding="15,0,0,0"/>
             </Border>
-            
-            <Label Style="{StaticResource base}" FontSize="22" Content="Имя пользователя" Margin="15"/>
-            <Border Style="{StaticResource textboxborder}" Grid.ColumnSpan="2" Margin="15,5">
-                <TextBox x:Name="assetNameTextBox" Style="{StaticResource inputtextbox}" Padding="15,0,0,0"/>
+
+            <Label Style="{StaticResource base}" FontSize="22" Content="Пароль" Margin="15,5"/>
+            <Border Style="{StaticResource textboxborder}" Grid.ColumnSpan="2" Margin="15,0">
+                <PasswordBox x:Name="passwordbox" Style="{StaticResource base}" FontSize="22" Background="{StaticResource gray}" Padding="15,0,0,0"/>
+            </Border>
+            <Label Style="{StaticResource base}" FontSize="22" Content="Повторите пароль" Margin="15,5,15,3"/>
+            <Border Style="{StaticResource textboxborder}" Grid.ColumnSpan="2" Margin="15,0">
+                <PasswordBox x:Name="passwordbox2" Style="{StaticResource base}" FontSize="22" Background="{StaticResource gray}" Padding="15,0,0,0"/>
+            </Border>
+
+            <Border Style="{StaticResource textboxborder}" Grid.ColumnSpan="2" Margin="0,30,0,0"  MaxWidth="250" MaxHeight="50">
+                <Button VerticalAlignment="Bottom" Grid.Row="1" FontSize="20" Style="{StaticResource base}" Content="Зарегистрироваться" Click="RegisterButton_Click" Background="{StaticResource light}" Foreground="{StaticResource darkdark}"/>
             </Border>
         </StackPanel>
-    
-        <Button VerticalAlignment="Bottom" Grid.Row="1" FontSize="20" Style="{StaticResource base}" Content="Зарегистрироваться" Background="{StaticResource light}" MaxWidth="250" MaxHeight="50"/>
 
     </Grid>
 </Window>

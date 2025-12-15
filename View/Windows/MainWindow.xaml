@@ -23,7 +23,7 @@
             <Label Content="MICPIX!!!!!!!!!!!!!" VerticalAlignment="Center" Margin="10" Style="{StaticResource base}" FontSize="48" Foreground="{StaticResource lightblue}"/>
             <Label Content="Вход/Регистрация" Margin="10" Style="{StaticResource base}" Foreground="{StaticResource darkblue}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
         </DockPanel>   -->
-        <uc:PageHeader Style="{StaticResource base}" Grid.ColumnSpan="2" logosrc="/Source/icon.png" pagetitle="MICPIX!!!!!!!!!!!!!" logintext="Вход/Регистрация"/>
+        <uc:PageHeader x:Name="pageheader" Style="{StaticResource base}" Grid.ColumnSpan="2" logosrc="/Source/icon.png" pagetitle="MICPIX!!!!!!!!!!!!!" logintext="Профиль"/>
 
         <Grid Grid.Row="1" Margin="80,30,30,30" Background="{StaticResource light}">
             <Grid.RowDefinitions>

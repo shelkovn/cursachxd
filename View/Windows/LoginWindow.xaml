@@ -1,0 +1,34 @@
+﻿<Window x:Class="micpix.View.Windows.LoginWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:micpix.View.Windows"
+        xmlns:uc="clr-namespace:micpix.View.UserControls"
+        mc:Ignorable="d"
+        Title="LoginWindow" Height="500" Width="400">
+    <Grid Background="{StaticResource medium}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="0.2*"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <uc:PageHeader x:Name="pageheader" pagetitle="Вход" logintext="Регистрация"/>
+
+        <StackPanel Grid.Row="1" VerticalAlignment="Center" Orientation="Vertical" Margin="0,0,0,30">
+            <Label Style="{StaticResource base}" FontSize="22" Content="Имя пользователя" Margin="15"/>
+            <Border Style="{StaticResource textboxborder}" Grid.ColumnSpan="2" Margin="15,5">
+                <TextBox x:Name="usernametextbox" Style="{StaticResource inputtextbox}"  Padding="15,0,0,0"/>
+            </Border>
+
+            <Label Style="{StaticResource base}" FontSize="22" Content="Пароль" Margin="15"/>
+            <Border Style="{StaticResource textboxborder}" Grid.ColumnSpan="2" Margin="15,5">
+                <PasswordBox x:Name="passwordbox" Style="{StaticResource base}" FontSize="22" Background="{StaticResource gray}" Padding="15,0,0,0"/>
+            </Border>
+
+            <Border Style="{StaticResource textboxborder}" Grid.ColumnSpan="2" Margin="0,40,0,0"  MaxWidth="150" MaxHeight="50">
+                <Button VerticalAlignment="Bottom" Grid.Row="1"  FontSize="20" Style="{StaticResource base}" Content="Войти" Click="LoginButton_Click" Background="{StaticResource light}" Foreground="{StaticResource darkdark}"/>
+            </Border>
+        </StackPanel>
+
+    </Grid>
+</Window>
