@@ -16,6 +16,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using WpfApp1;
 
 namespace micpix.View.Windows
 {
@@ -26,6 +27,8 @@ namespace micpix.View.Windows
     {
         private resourceuploadwindow uploadWindow;
         static Class1 db = new Class1();
+        Collages currentCollage = db.Collages.Include(с => с.Layers).ThenInclude(l => l.Resource).First(); // ЗАГЛУШКА
+        IEnumerable<Layers> currentLayers;
         IEnumerable<Resources> resset = db.ResourcesSet.Include(r => r.Author);
         IEnumerable<Resources> resset_filtered = db.ResourcesSet.Include(r => r.Author);
         public CollageMakerWindow()
@@ -43,6 +46,43 @@ namespace micpix.View.Windows
                 MessageBox.Show($"Ошибка при загрузке: {ex.Message}");
             }
             LoadResources();
+            LoadCollageLayers();
+
+            pageheader.LoginAction = () =>
+            {
+                MessageBox.Show($"Здесь обязательно будет страница профиля для {App.CurrentUsername}", "Когда нибудь попозже");
+            };
+        }
+
+        private void LoadCollageLayers()
+        {
+            if (currentCollage != null)
+            {
+                try
+                {
+                    layerspanel.Children.Clear();
+                    currentLayers = currentCollage.Layers.OrderBy(x => x.LayerIndex);
+                    foreach (var layer in currentLayers)
+                    {
+                        var usercontrol = new CollageLayer()
+                        {
+                            HorizontalAlignment = HorizontalAlignment.Stretch,
+                            layerindex = $"#{layer.LayerIndex.ToString()}",
+                            imgsrc = layer.Resource.ImagePath,
+                            assetname = layer.Resource.Title,
+                            opacityvalue = layer.Opacity,
+                            dblayerid = layer.Id
+                        };
+                        layerspanel.Children.Add(usercontrol);
+                    }
+                    MessageBox.Show($"{layerspanel.Children.Count} слоев загружено");
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Ошибка при загрузке коллажа: {ex.Message}, collageid{currentCollage.Id}");
+                }
+            }
+            
         }
 
         private void LoadResources()

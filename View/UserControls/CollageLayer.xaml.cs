@@ -58,15 +58,27 @@ namespace micpix.View.UserControls
 
 
 
-        public int opacityvalue
+        public decimal opacityvalue
         {
-            get { return (int)GetValue(opacityvalueProperty); }
+            get { return (decimal)GetValue(opacityvalueProperty); }
             set { SetValue(opacityvalueProperty, value); }
         }
 
         // Using a DependencyProperty as the backing store for opacityvalue.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty opacityvalueProperty =
-            DependencyProperty.Register("opacityvalue", typeof(int), typeof(CollageLayer), new PropertyMetadata(100));
+            DependencyProperty.Register("opacityvalue", typeof(decimal), typeof(CollageLayer), new PropertyMetadata(1m));
+
+
+
+        public int dblayerid
+        {
+            get { return (int)GetValue(dblayeridProperty); }
+            set { SetValue(dblayeridProperty, value); }
+        }
+
+        // Using a DependencyProperty as the backing store for dblayerid.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty dblayeridProperty =
+            DependencyProperty.Register("dblayerid", typeof(int), typeof(CollageLayer), new PropertyMetadata(0));
 
 
 

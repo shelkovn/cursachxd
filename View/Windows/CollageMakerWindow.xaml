@@ -20,7 +20,7 @@
             <ColumnDefinition Width="1.1*"/>
         </Grid.ColumnDefinitions>
 
-        <uc:PageHeader Style="{StaticResource base}" Grid.ColumnSpan="3" logosrc="/Source/icon.png" pagetitle="MICPIX!!!!!!!!!!!!!" logintext="Вход/Регистрация"/>
+        <uc:PageHeader x:Name="pageheader" Style="{StaticResource base}" Grid.ColumnSpan="3" logosrc="/Source/icon.png" pagetitle="MICPIX!!!!!!!!!!!!!" logintext="Профиль"/>
 
         <Border Grid.Row="1" Margin="5" Style="{StaticResource darkborder}">
             <Grid Background="{StaticResource light}">
@@ -116,7 +116,7 @@
                         <Label Style="{StaticResource base}" Foreground="{StaticResource dark}" FontSize="20" Content="Слои"/>
                         <ScrollViewer VerticalScrollBarVisibility="Hidden">
                             <StackPanel x:Name="layerspanel" Orientation="Vertical">
-                                <uc:CollageLayer imgsrc="/Source/3max.png" assetname="testname" HorizontalAlignment="Stretch"/>
+                                <!--<uc:CollageLayer imgsrc="/Source/3max.png" assetname="testname" HorizontalAlignment="Stretch"/>-->
                             </StackPanel>
                         </ScrollViewer>
                     </StackPanel>
