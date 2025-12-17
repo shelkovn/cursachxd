@@ -17,6 +17,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using WpfApp1;
+using WpfAnimatedGif;
+using System.Diagnostics;
 
 namespace micpix.View.Windows
 {
@@ -28,6 +30,7 @@ namespace micpix.View.Windows
         private resourceuploadwindow uploadWindow;
         static Class1 db = new Class1();
         Collages currentCollage = db.Collages.Include(с => с.Layers).ThenInclude(l => l.Resource).First(); // ЗАГЛУШКА
+        Layers targetLayer;
         IEnumerable<Layers> currentLayers;
         IEnumerable<Resources> resset = db.ResourcesSet.Include(r => r.Author);
         IEnumerable<Resources> resset_filtered = db.ResourcesSet.Include(r => r.Author);
@@ -47,6 +50,7 @@ namespace micpix.View.Windows
             }
             LoadResources();
             LoadCollageLayers();
+            RenderCollage();
 
             pageheader.LoginAction = () =>
             {
@@ -60,6 +64,9 @@ namespace micpix.View.Windows
             {
                 try
                 {
+                    collagenametb.Text = currentCollage.Title;
+                    collagewidth.Text = currentCollage.Width.ToString();
+                    collageheight.Text = currentCollage.Height.ToString();
                     layerspanel.Children.Clear();
                     currentLayers = currentCollage.Layers.OrderBy(x => x.LayerIndex);
                     foreach (var layer in currentLayers)
@@ -73,9 +80,10 @@ namespace micpix.View.Windows
                             opacityvalue = layer.Opacity,
                             dblayerid = layer.Id
                         };
+                        usercontrol.MouseUp += LayerListSelect;
                         layerspanel.Children.Add(usercontrol);
                     }
-                    MessageBox.Show($"{layerspanel.Children.Count} слоев загружено");
+                    //MessageBox.Show($"{layerspanel.Children.Count} слоев загружено"); //debug
                 }
                 catch (Exception ex)
                 {
@@ -83,6 +91,131 @@ namespace micpix.View.Windows
                 }
             }
             
+        }
+
+        private void RenderCollage()
+        {
+            if (currentCollage != null && collagecanvas != null)
+            {
+                try
+                {
+                    collagecanvas.Children.Clear();
+                    currentLayers = currentCollage.Layers.OrderBy(x => x.LayerIndex).ToList();
+                    if (!currentLayers.Any()) return;
+
+                    double canvasWidth = collagecanvas.ActualWidth;
+                    double canvasHeight = collagecanvas.ActualHeight;
+
+                    if (canvasWidth <= 0 || canvasHeight <= 0) // канвас не отображается
+                    {
+                        return;
+                    }
+
+
+                    double scaleX = canvasWidth / currentCollage.Width;
+                    double scaleY = canvasHeight / currentCollage.Height;
+                    double scale = Math.Min(scaleX, scaleY); //чтобы понять в каком размере рендерить коллаж, доступное канвасу место может не совпадать с размерами коллажа
+                    //коллаж рендерим по центру
+                    double offsetX = (canvasWidth - (currentCollage.Width * scale)) / 2;
+                    double offsetY = (canvasHeight - (currentCollage.Height * scale)) / 2;
+
+                    foreach (var layer in currentLayers)
+                    {
+                        //if (layer.Resource == null) continue;
+
+                        //MessageBox.Show($"ресурс {layer.Resource != null}");
+                        //MessageBox.Show($"Path: {layer.Resource.ImagePath}");
+                        try
+                        {
+                            Image layerImage = new Image
+                            {
+                                Opacity = (double)layer.Opacity,
+                                RenderTransformOrigin = new Point(0.5, 0.5)
+                            };
+
+                            string imagePath = layer.Resource.ImagePath; 
+                            string packUri = "pack://application:,,," + imagePath;
+
+                            BitmapImage bitmap = new BitmapImage();
+                            bitmap.BeginInit();
+                            bitmap.UriSource = new Uri(packUri, UriKind.Absolute);
+                            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                            bitmap.EndInit();
+
+                            double imageWidth = bitmap.PixelWidth;
+                            double imageHeight = bitmap.PixelHeight;
+                            layerImage.Width = imageWidth * (double)layer.XScale / 100 * scale;
+                            layerImage.Height = imageHeight * (double)layer.YScale / 100 * scale;
+                            Uri imageUri = new Uri(imagePath, UriKind.Relative);
+                            ImageBehavior.SetAnimatedSource(layerImage, new BitmapImage(imageUri));
+                            
+                            if (layer.Rotation != 0)
+                            {
+                                layerImage.RenderTransform = new RotateTransform((double)layer.Rotation);
+                            }
+
+                            double xPos = offsetX + (layer.XOffset * scale);
+                            double yPos = offsetY + (layer.YOffset * scale);
+
+                            Canvas.SetLeft(layerImage, xPos);
+                            Canvas.SetTop(layerImage, yPos);
+                            layerImage.Tag = layer.Id;
+
+                            //layerImage.MouseLeftButtonDown += LayerImage_MouseLeftButtonDown;
+                            //layerImage.Cursor = Cursors.Hand;
+
+                            collagecanvas.Children.Add(layerImage);
+
+                        }
+                        catch (Exception imgEx)
+                        {
+                            Console.WriteLine($"Ошибка слоя {layer.Id}: {imgEx.Message}");
+                        }
+                    }
+                    //MessageBox.Show($"{collagecanvas.Children.Count} слоев на рендер");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Ошибка при отображении коллажа: {ex.Message}");
+                }
+            }
+        }
+
+
+        private void LayerListSelect(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is CollageLayer control)
+            {
+                int layerId = (int)control.dblayerid;
+                targetLayer = currentLayers.FirstOrDefault(l => l.Id == layerId);
+                TargetLayerDisplayData();
+            }
+        }
+
+        private void TargetLayerDisplayData()
+        {
+            if (targetLayer != null)
+            {
+                try
+                {
+                    targetname.Content = targetLayer.Resource.Title;
+                    targetwidth.Text = targetLayer.XScale.ToString();
+                    targetheight.Text = targetLayer.YScale.ToString();
+                    targetopacity.Text = targetLayer.Opacity.ToString();
+                    targetrot.Text = targetLayer.Rotation.ToString();
+                    targetx.Text = targetLayer.XOffset.ToString();
+                    targety.Text = targetLayer.YOffset.ToString();
+
+                    string relativePath = targetLayer.Resource.ImagePath;
+                    Uri imageUri = new Uri(relativePath, UriKind.Relative);
+                    //Uri imageUri = new Uri("pack://application:,,," + relativePath, UriKind.Absolute);
+                    ImageBehavior.SetAnimatedSource(targetimg, new BitmapImage(imageUri));
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Ошибка при обработке слоя: {ex}");
+                }
+            }
         }
 
         private void LoadResources()
@@ -145,6 +278,11 @@ namespace micpix.View.Windows
             {
                 uploadWindow.Activate();
             }
+        }
+
+        private void collagecanvas_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            RenderCollage();
         }
     }
 }

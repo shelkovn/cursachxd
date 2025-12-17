@@ -33,12 +33,12 @@
                     <RowDefinition/>
                 </Grid.RowDefinitions>
 
-                <TextBox Style="{StaticResource inputtextbox}" Margin="3" FontSize="18" Text="CollageName" Foreground="{StaticResource blue}"/>
+                <TextBox x:Name="collagenametb" Style="{StaticResource inputtextbox}" Margin="3" FontSize="18" Text="CollageName" Foreground="{StaticResource blue}"/>
                 <StackPanel Grid.Row="1" Orientation="Horizontal">
                     <Label Style="{StaticResource base}" FontSize="16" Content="width:"/>
-                    <TextBox Style="{StaticResource inputtextbox}" Margin="3" FontSize="16" MinWidth="50"/>
+                    <TextBox x:Name="collagewidth" Style="{StaticResource inputtextbox}" Margin="3" FontSize="16" MinWidth="50"/>
                     <Label Style="{StaticResource base}" FontSize="16" Content="height:"/>
-                    <TextBox Style="{StaticResource inputtextbox}" Margin="3" FontSize="16" MinWidth="50"/>
+                    <TextBox x:Name="collageheight" Style="{StaticResource inputtextbox}" Margin="3" FontSize="16" MinWidth="50"/>
                 </StackPanel>
                 <Button Style="{StaticResource importantbtn}" Content="Сохранить" FontSize="14" MaxWidth="100" Grid.Column="1" Margin="0,3,3,0"/>
                 <Button Style="{StaticResource importantbtn}" Content="Экспорт" FontSize="14" MaxWidth="100" Grid.Row="1" Grid.Column="1" Margin="0,3,3,3"/>
@@ -68,7 +68,7 @@
         </Grid>
         
         <Border BorderBrush="{StaticResource darkdark}" BorderThickness="7" Grid.Row="1" Grid.RowSpan="2" Grid.Column="1" Margin="5">
-            <Canvas Background="{StaticResource gray}" >
+            <Canvas x:Name="collagecanvas" Background="{StaticResource gray}" SizeChanged="collagecanvas_SizeChanged">
 
             </Canvas>
         </Border>
@@ -90,26 +90,26 @@
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
                 <Label Style="{StaticResource base}" FontSize="16" Content="Элемент:"/>
-                <Label Style="{StaticResource base}" Foreground="{StaticResource blue}" FontSize="18" Content="элемент не выбран" Grid.Column="1" Grid.ColumnSpan="3"/>
-                <Image Grid.Row="1" Grid.RowSpan="2" Grid.ColumnSpan="2" gif:ImageBehavior.AnimatedSource="/Source/icon.png" Stretch="Uniform"/>
+                <Label x:Name="targetname" Style="{StaticResource base}" Foreground="{StaticResource blue}" FontSize="18" Content="элемент не выбран" Grid.Column="1" Grid.ColumnSpan="3"/>
+                <Image x:Name="targetimg" Grid.Row="1" Grid.RowSpan="2" Grid.ColumnSpan="2" gif:ImageBehavior.AnimatedSource="/Source/icon.png" Stretch="Uniform"/>
                 
                 <Label Style="{StaticResource base}" FontSize="16" Grid.Row="3" Content="x:"/>
-                <Label Background="{StaticResource gray}" FontSize="18" Grid.Row="3" Margin="25,0,3,3"/>
+                <TextBox x:Name="targetx" Background="{StaticResource gray}" FontSize="18" Grid.Row="3" Margin="25,0,3,3"/>
                 
                 <Label Style="{StaticResource base}" FontSize="16" Grid.Column="1" Grid.Row="3" Content="y:"/>
-                <Label Background="{StaticResource gray}" FontSize="18" Grid.Column="1" Grid.Row="3" Margin="25,3,3,3"/>
+                <TextBox x:Name="targety" Background="{StaticResource gray}" FontSize="18" Grid.Column="1" Grid.Row="3" Margin="25,3,3,3"/>
                 
-                <Label Style="{StaticResource base}" FontSize="16" Grid.Row="1" Grid.Column="2" Content="width:"/>
-                <Label Background="{StaticResource gray}" FontSize="18" Grid.Row="1" Grid.Column="3" Margin="5"/>
+                <Label Style="{StaticResource base}" FontSize="16" Grid.Row="1" Grid.Column="2" Content="scale x:"/>
+                <TextBox x:Name="targetwidth" Background="{StaticResource gray}" FontSize="18" Grid.Row="1" Grid.Column="3" Margin="5"/>
                 
-                <Label Style="{StaticResource base}" FontSize="16" Grid.Row="2" Grid.Column="2" Content="height:"/>
-                <Label Background="{StaticResource gray}" FontSize="18" Grid.Row="2" Grid.Column="3" Margin="5"/>
+                <Label Style="{StaticResource base}" FontSize="16" Grid.Row="2" Grid.Column="2" Content="scale y:"/>
+                <TextBox x:Name="targetheight" Background="{StaticResource gray}" FontSize="18" Grid.Row="2" Grid.Column="3" Margin="5"/>
 
                 <Label Style="{StaticResource base}" FontSize="16" Grid.Row="3" Grid.Column="2" Content="rotation:"/>
-                <Label Background="{StaticResource gray}" FontSize="18" Grid.Row="3" Grid.Column="3" Margin="5"/>
+                <TextBox x:Name="targetrot" Background="{StaticResource gray}" FontSize="18" Grid.Row="3" Grid.Column="3" Margin="5"/>
 
                 <Label Style="{StaticResource base}" FontSize="16" Grid.Row="4" Grid.Column="2" Content="opacity:"/>
-                <Label Background="{StaticResource gray}" FontSize="18" Grid.Row="4" Grid.Column="3" Margin="5"/>
+                <TextBox x:Name="targetopacity" Background="{StaticResource gray}" FontSize="18" Grid.Row="4" Grid.Column="3" Margin="5"/>
 
                 <Border Grid.Row="5" Grid.ColumnSpan="4" Margin="10" BorderThickness="3" BorderBrush="{StaticResource dark}" Background="{StaticResource gray}">
                     <StackPanel Orientation="Vertical">
