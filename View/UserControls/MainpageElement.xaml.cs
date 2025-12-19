@@ -26,6 +26,17 @@ namespace micpix.View.UserControls
             DataContext = this;
         }
 
+        public int itemid
+        {
+            get { return (int)GetValue(itemidProperty); }
+            set { SetValue(itemidProperty, value); }
+        }
+
+        public static readonly DependencyProperty itemidProperty =
+            DependencyProperty.Register("itemid", typeof(int), typeof(MainpageElement), new PropertyMetadata(0));
+
+
+
         public string imgsrc { get; set; } = null!;
         public string author { get; set; } = null!;
         public string uploaddate { get; set; } = null!;

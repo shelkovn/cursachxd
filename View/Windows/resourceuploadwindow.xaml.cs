@@ -215,7 +215,7 @@ namespace micpix.View.Windows
                     var resource = new Resources()
                     {
                         Title = assetNameTextBox.Text,
-                        Author = currentUser, //db.UserSet.First(), //заглушка до создания авторизации
+                        Author = currentUser, 
                         AuthorId = App.CurrentUserId,
                         ImagePath = imagePathForDb,
                         UploadDate = DateTime.Now

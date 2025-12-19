@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="14.10.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.0">
@@ -24,9 +25,11 @@
 		<None Remove="Source\*.ttf" />
 		<None Remove="Source\*.jpg" />
 		<None Remove="Source\*.gif" />
+		<None Remove="Source\Previews\*.gif" />
 	</ItemGroup>
 	<ItemGroup>
-        <Resource Include="Source\*.gif" />
+        <Resource Include="Source\Previews\*.gif" />
+		<Resource Include="Source\*.gif" />
         <Resource Include="Source\*.png" />
         <Resource Include="Source\*.jpg" />
 		<Resource Include="Source\*.otf" />

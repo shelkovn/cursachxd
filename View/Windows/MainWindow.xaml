@@ -18,11 +18,6 @@
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
 
-        <!--<DockPanel Grid.ColumnSpan="2"  Background="{StaticResource dark}">
-            <Image Source="/Source/icon.png" VerticalAlignment="Center" Margin="10"/>
-            <Label Content="MICPIX!!!!!!!!!!!!!" VerticalAlignment="Center" Margin="10" Style="{StaticResource base}" FontSize="48" Foreground="{StaticResource lightblue}"/>
-            <Label Content="Вход/Регистрация" Margin="10" Style="{StaticResource base}" Foreground="{StaticResource darkblue}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-        </DockPanel>   -->
         <uc:PageHeader x:Name="pageheader" Style="{StaticResource base}" Grid.ColumnSpan="2" logosrc="/Source/icon.png" pagetitle="MICPIX!!!!!!!!!!!!!" logintext="Профиль"/>
 
         <Grid Grid.Row="1" Margin="80,30,30,30" Background="{StaticResource light}">
@@ -35,9 +30,9 @@
             <DockPanel>
                 <Label Style="{StaticResource base}" Foreground="{StaticResource darkdark}" FontSize="24" Content="Недавние работы" Margin="15"/>
             </DockPanel>
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden">
-                <WrapPanel>
-                    <ContentControl/>
+            <ScrollViewer  Grid.Row="1" VerticalScrollBarVisibility="Hidden">
+                <WrapPanel x:Name="collagepanel">
+                    
                 </WrapPanel>
             </ScrollViewer>
             <Button Style="{StaticResource importantbtn}" Content="Создать работу" FontSize="24" Margin="20" Grid.Row="2" Click="CollageMaker_Window_Click"/>
