@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using micpix.Server;
 
@@ -11,9 +12,11 @@ using micpix.Server;
 namespace micpix.Migrations
 {
     [DbContext(typeof(Class1))]
-    partial class Class1ModelSnapshot : ModelSnapshot
+    [Migration("20251220072454_categories")]
+    partial class categories
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

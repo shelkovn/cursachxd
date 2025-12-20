@@ -18,10 +18,10 @@
         <Label Style="{StaticResource base}" Content="{Binding layerindex}" FontSize="16" Foreground="{StaticResource dark}" VerticalAlignment="Center"/>
         <Image Grid.Column="1" gif:ImageBehavior.AnimatedSource="{Binding imgsrc}" Stretch="Uniform" MaxHeight="150"/>
         <Label Grid.Column="2" Style="{StaticResource base}" FontSize="16" Content="{Binding assetname}"/>
-        <Slider Grid.Column="2" Background="{StaticResource light}" Margin="10" VerticalAlignment="Bottom" Minimum="0" Maximum="1" Value="{Binding opacityvalue}"/>
+        <Slider Grid.Column="2" Background="{StaticResource light}" Margin="10" ValueChanged="SliderValueChanged" VerticalAlignment="Bottom" Minimum="0" Maximum="1" TickFrequency="0.01" TickPlacement="BottomRight" Value="{Binding opacityvalue}"/>
         <Label Grid.Column="2" VerticalAlignment="Center" Style="{StaticResource base}" FontSize="16" Content="opacity"/>
-        <Label Grid.Column="3"  Foreground="{StaticResource blue}" FontSize="20" Content="👁"/>
-        <Label Grid.Column="3" VerticalAlignment="Bottom" Foreground="{StaticResource blue}" FontSize="20" Content="🗑️"/>
+        <Label Grid.Column="3"  Foreground="{StaticResource blue}" FontSize="20" Content="++" MouseUp="DuplicateClick"/>
+        <Label Grid.Column="3" VerticalAlignment="Bottom" Foreground="{StaticResource blue}" FontSize="20" Content="🗑️" MouseUp="DeleteClick"/>
         <Label Grid.Column="4" Foreground="{StaticResource blue}" FontSize="22" Content="◮"/>
         <Label Grid.Column="4" VerticalAlignment="Bottom" Foreground="{StaticResource blue}" FontSize="22" Content="⧩"/>
     </Grid>

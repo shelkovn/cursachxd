@@ -20,7 +20,11 @@ namespace micpix.View.UserControls
     /// </summary>
     public partial class CollageLayer : UserControl
     {
-
+        public Action OpacityChange { get; set; }
+        public Action MoveDown { get; set; }
+        public Action MoveUp { get; set; }
+        public Action Delete { get; set; }
+        public Action Duplicate { get; set; }
 
         public string imgsrc
         {
@@ -86,6 +90,30 @@ namespace micpix.View.UserControls
         {
             InitializeComponent();
             DataContext = this;
+        }
+
+        private void SliderValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            OpacityChange?.Invoke();
+        }
+
+        private void DuplicateClick(object sender, MouseButtonEventArgs e)
+        {
+            Duplicate?.Invoke();
+        }
+
+        private void DeleteClick(object sender, MouseButtonEventArgs e)
+        {
+            Delete?.Invoke();
+        }
+
+        private void UpClick(object sender, MouseButtonEventArgs e)
+        {
+            MoveUp?.Invoke();
+        }
+        private void DownClick(object sender, MouseButtonEventArgs e)
+        {
+            MoveDown?.Invoke();
         }
     }
 }

@@ -25,6 +25,8 @@ namespace micpix.Server
         public DbSet<Layers> Layers { get; set; }
         public DbSet<ResultGIFs> ResultGIFs { get; set; }
 
+        public DbSet<Categories> Categories { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -33,6 +35,17 @@ namespace micpix.Server
             modelBuilder.Entity<Collages>().ToTable("Collages");
             modelBuilder.Entity<Layers>().ToTable("Layers");
             modelBuilder.Entity<ResultGIFs>().ToTable("ResultGIFs");
+            modelBuilder.Entity<Categories>().ToTable("Categories");
+
+            modelBuilder.Entity<Categories>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.HasOne(c => c.Parent)
+                      .WithMany(c => c.Children)
+                      .HasForeignKey(c => c.ParentId)
+                      .OnDelete(DeleteBehavior.Restrict); 
+            });
 
             modelBuilder.Entity<Resources>()
                 .HasOne(r => r.Author)
