@@ -37,6 +37,14 @@ namespace micpix.View.Windows
         IEnumerable<Layers> currentLayers;
         IEnumerable<Resources> resset = db.ResourcesSet.Include(r => r.Author);
         IEnumerable<Resources> resset_filtered = db.ResourcesSet.Include(r => r.Author);
+        double draginitx, draginity, dragreleasex, dragreleasey, deltax, deltay;
+        double canvasWidth;
+        double canvasHeight;
+        double scaleX;
+        double scaleY;
+        double scale; 
+        double offsetX;
+        double offsetY;
 
         public CollageMakerWindow()
         {
@@ -80,6 +88,11 @@ namespace micpix.View.Windows
             };
         }
 
+        private void InitLayerListActions()
+        {
+
+        }
+
         public void LoadCollageLayers()
         {
             if (currentCollage != null)
@@ -103,8 +116,10 @@ namespace micpix.View.Windows
                                 assetname = layer.Resource.Title,
                                 opacityvalue = layer.Opacity,
                                 dblayerid = layer.Id
+                                
                             };
                             usercontrol.MouseUp += LayerListSelect;
+                            DockPanel.SetDock(usercontrol, Dock.Top);
                             layerspanel.Children.Add(usercontrol);
                         }
                     }
@@ -118,6 +133,53 @@ namespace micpix.View.Windows
             
         }
 
+        private void ClickImage(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is Image control)
+            {
+                draginitx = e.GetPosition(collagecanvas).X;
+                draginity = e.GetPosition(collagecanvas).Y;
+                deltax = e.GetPosition(control).X;
+                deltay = e.GetPosition(control).Y;
+                int? layerId = (int)control.Tag;
+                if (layerId != null)
+                {
+                    targetLayer = currentLayers.FirstOrDefault(l => l.Id == layerId);
+                    TargetLayerDisplayData();
+                }
+            }
+        }
+
+        private void DragImage(object sender, MouseEventArgs e)
+        {
+            if (sender is Image control && e.LeftButton == MouseButtonState.Pressed)
+            {
+                Canvas.SetLeft(control, (e.GetPosition(collagecanvas).X - deltax));
+                Canvas.SetTop(control, (e.GetPosition(collagecanvas).Y - deltay));
+            }
+        }
+        private void PositionImage(object sender, MouseEventArgs e)
+        {
+            if (sender is Image control)
+            {
+                dragreleasex = e.GetPosition(collagecanvas).X;
+                dragreleasey = e.GetPosition(collagecanvas).Y;
+                double xdif = (dragreleasex - draginitx) / scale;
+                double ydif = (dragreleasey - draginity) / scale;
+                int? layerId = (int)control.Tag;
+                if (layerId != null)
+                {
+                    targetLayer = currentLayers.FirstOrDefault(l => l.Id == layerId);
+                    targetLayer.XOffset += (int)xdif;
+                    targetLayer.YOffset += (int)ydif;
+                    //MessageBox.Show("changed pos");
+                    UpdateLayerInDatabase();
+                    RenderCollage();
+                    TargetLayerDisplayData();
+                }
+            }
+        }
+
         private void RenderCollage()
         {
             if (currentCollage != null && collagecanvas != null)
@@ -128,8 +190,8 @@ namespace micpix.View.Windows
                     currentLayers = currentCollage.Layers.OrderBy(x => x.LayerIndex).ToList();
                     if (!currentLayers.Any()) return;
 
-                    double canvasWidth = collagecanvas.ActualWidth;
-                    double canvasHeight = collagecanvas.ActualHeight;
+                    canvasWidth = collagecanvas.ActualWidth;
+                    canvasHeight = collagecanvas.ActualHeight;
 
                     if (canvasWidth <= 0 || canvasHeight <= 0) // канвас не отображается
                     {
@@ -137,12 +199,12 @@ namespace micpix.View.Windows
                     }
 
 
-                    double scaleX = canvasWidth / currentCollage.Width;
-                    double scaleY = canvasHeight / currentCollage.Height;
-                    double scale = Math.Min(scaleX, scaleY); //чтобы понять в каком размере рендерить коллаж, доступное канвасу место может не совпадать с размерами коллажа
+                    scaleX = canvasWidth / currentCollage.Width;
+                    scaleY = canvasHeight / currentCollage.Height;
+                    scale = Math.Min(scaleX, scaleY); //чтобы понять в каком размере рендерить коллаж, доступное канвасу место может не совпадать с размерами коллажа
                     //коллаж рендерим по центру
-                    double offsetX = (canvasWidth - (currentCollage.Width * scale)) / 2;
-                    double offsetY = (canvasHeight - (currentCollage.Height * scale)) / 2;
+                    offsetX = (canvasWidth - (currentCollage.Width * scale)) / 2;
+                    offsetY = (canvasHeight - (currentCollage.Height * scale)) / 2;
 
                     Rectangle border = new Rectangle
                     {
@@ -158,66 +220,93 @@ namespace micpix.View.Windows
                     Canvas.SetTop(border, offsetY);
                     Panel.SetZIndex(border, -10);
                     collagecanvas.Children.Add(border);
-
-                    foreach (var layer in currentLayers)
+                    if (currentLayers.Any())
                     {
-                        //if (layer.Resource == null) continue;
-
-                        //MessageBox.Show($"ресурс {layer.Resource != null}");
-                        //MessageBox.Show($"Path: {layer.Resource.ImagePath}");
-                        try
+                        foreach (var layer in currentLayers)
                         {
-                            Image layerImage = new Image
+                            //if (layer.Resource == null) continue;
+
+                            //MessageBox.Show($"ресурс {layer.Resource != null}");
+                            //MessageBox.Show($"Path: {layer.Resource.ImagePath}");
+                            try
                             {
-                                Opacity = (double)layer.Opacity,
-                                RenderTransformOrigin = new Point(0.5, 0.5),
-                                Stretch = Stretch.Fill
-                            };
+                                Image layerImage = new Image
+                                {
+                                    Opacity = (double)layer.Opacity,
+                                    RenderTransformOrigin = new Point(0.5, 0.5),
+                                    Stretch = Stretch.Fill
+                                };
 
-                            string imagePath = layer.Resource.ImagePath; 
-                            string packUri = "pack://application:,,," + imagePath;
+                                string imagePath = layer.Resource.ImagePath;
+                                string packUri = "pack://application:,,," + imagePath;
 
-                            BitmapImage bitmap = new BitmapImage();
-                            bitmap.BeginInit();
-                            bitmap.UriSource = new Uri(packUri, UriKind.Absolute);
-                            bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                            bitmap.EndInit();
+                                BitmapImage bitmap = new BitmapImage();
+                                bitmap.BeginInit();
+                                bitmap.UriSource = new Uri(packUri, UriKind.Absolute);
+                                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                                bitmap.EndInit();
 
-                            double imageWidth = bitmap.PixelWidth;
-                            double imageHeight = bitmap.PixelHeight;
-                            layerImage.Width = imageWidth * (double)layer.XScale / 100 * scale;
-                            layerImage.Height = imageHeight * (double)layer.YScale / 100 * scale;
-                            Uri imageUri = new Uri(imagePath, UriKind.Relative);
-                            ImageBehavior.SetAnimatedSource(layerImage, new BitmapImage(imageUri));
-                            
-                            if (layer.Rotation != 0)
-                            {
-                                layerImage.RenderTransform = new RotateTransform((double)layer.Rotation);
+                                double imageWidth = bitmap.PixelWidth;
+                                double imageHeight = bitmap.PixelHeight;
+                                layerImage.Width = imageWidth * (double)layer.XScale / 100 * scale;
+                                layerImage.Height = imageHeight * (double)layer.YScale / 100 * scale;
+                                Uri imageUri = new Uri(imagePath, UriKind.Relative);
+                                ImageBehavior.SetAnimatedSource(layerImage, new BitmapImage(imageUri));
+
+                                if (layer.Rotation != 0)
+                                {
+                                    layerImage.RenderTransform = new RotateTransform((double)layer.Rotation);
+                                }
+
+                                double xPos = offsetX + (layer.XOffset * scale);
+                                double yPos = offsetY + (layer.YOffset * scale);
+
+                                Canvas.SetLeft(layerImage, xPos);
+                                Canvas.SetTop(layerImage, yPos);
+                                layerImage.Tag = layer.Id;
+                                layerImage.MouseLeftButtonDown += ClickImage;
+                                layerImage.MouseMove += DragImage;
+                                layerImage.MouseUp += PositionImage;
+                                layerImage.MouseWheel += RotateImage;
+
+                                //layerImage.MouseLeftButtonDown += LayerImage_MouseLeftButtonDown;
+                                //layerImage.Cursor = Cursors.Hand;
+
+                                collagecanvas.Children.Add(layerImage);
+
                             }
-
-                            double xPos = offsetX + (layer.XOffset * scale);
-                            double yPos = offsetY + (layer.YOffset * scale);
-
-                            Canvas.SetLeft(layerImage, xPos);
-                            Canvas.SetTop(layerImage, yPos);
-                            layerImage.Tag = layer.Id;
-
-                            //layerImage.MouseLeftButtonDown += LayerImage_MouseLeftButtonDown;
-                            //layerImage.Cursor = Cursors.Hand;
-
-                            collagecanvas.Children.Add(layerImage);
-
-                        }
-                        catch (Exception imgEx)
-                        {
-                            Console.WriteLine($"Ошибка слоя {layer.Id}: {imgEx.Message}");
+                            catch (Exception imgEx)
+                            {
+                                Console.WriteLine($"Ошибка слоя {layer.Id}: {imgEx.Message}");
+                            }
                         }
                     }
+                    
                     //MessageBox.Show($"{collagecanvas.Children.Count} слоев на рендер");
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Ошибка при отображении коллажа: {ex.Message}");
+                }
+            }
+        }
+
+        private void RotateImage(object sender, MouseWheelEventArgs e)
+        {
+            if (sender is Image control && e.Delta != 0)
+            {
+                int? layerId = (int)control.Tag;
+                if (layerId != null)
+                {
+                    targetLayer = currentLayers.FirstOrDefault(l => l.Id == layerId);
+                    if (e.Delta < 0)
+                        targetLayer.Rotation-=3;
+                    else
+                        targetLayer.Rotation+=3;
+                    
+                    UpdateLayerInDatabase();
+                    RenderCollage();
+                    TargetLayerDisplayData();
                 }
             }
         }
@@ -768,6 +857,16 @@ namespace micpix.View.Windows
                         db.SaveChanges();
 
                         var collageLayer = currentCollage?.Layers?.FirstOrDefault(l => l.Id == targetLayer.Id);
+                        if (collageLayer != null)
+                        {
+                            collageLayer.XOffset = targetLayer.XOffset;
+                            collageLayer.YOffset = targetLayer.YOffset;
+                            collageLayer.XScale = targetLayer.XScale;
+                            collageLayer.YScale = targetLayer.YScale;
+                            collageLayer.Rotation = targetLayer.Rotation;
+                            collageLayer.Opacity = targetLayer.Opacity;
+                        }
+                        collageLayer = currentLayers.FirstOrDefault(l => l.Id == targetLayer.Id);
                         if (collageLayer != null)
                         {
                             collageLayer.XOffset = targetLayer.XOffset;

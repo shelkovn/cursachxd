@@ -27,9 +27,12 @@
                 <RowDefinition Height="0.2*"/>
             </Grid.RowDefinitions>
             <Border Grid.RowSpan="3" Style="{StaticResource darkborder}"/>
-            <DockPanel>
-                <Label Style="{StaticResource base}" Foreground="{StaticResource darkdark}" FontSize="24" Content="Недавние работы" Margin="15"/>
-            </DockPanel>
+            <StackPanel>
+                <Label Style="{StaticResource base}" Foreground="{StaticResource darkdark}" FontSize="24" Content="Недавние работы" Margin="15" VerticalAlignment="Top"/>
+                <Border DockPanel.Dock="Bottom" Style="{StaticResource textboxborder}" BorderThickness="2" Margin="15,0,50,0" VerticalAlignment="Top" >
+                    <TextBox x:Name="collagetb" Background="{StaticResource gray}" FontSize="16" Style="{StaticResource inputtextbox}" TextChanged="SearchCollages"/>
+                </Border>
+            </StackPanel>
             <ScrollViewer  Grid.Row="1" VerticalScrollBarVisibility="Hidden">
                 <WrapPanel x:Name="collagepanel">
                     

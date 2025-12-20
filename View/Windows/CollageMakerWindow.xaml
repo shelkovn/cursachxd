@@ -115,15 +115,16 @@
                 <TextBox x:Name="targetopacity" Background="{StaticResource gray}" FontSize="18" Grid.Row="4" Grid.Column="3" Margin="5"/>
 
                 <Border Grid.Row="5" Grid.ColumnSpan="4" Margin="10" BorderThickness="3" BorderBrush="{StaticResource dark}" Background="{StaticResource gray}">
-                    <StackPanel Orientation="Vertical">
-                        <Label Style="{StaticResource base}" Foreground="{StaticResource dark}" FontSize="20" Content="Слои"/>
-                        <ScrollViewer VerticalScrollBarVisibility="Hidden">
-                            <StackPanel x:Name="layerspanel" Orientation="Vertical">
-                                <!--<uc:CollageLayer imgsrc="/Source/3max.png" assetname="testname" HorizontalAlignment="Stretch"/>-->
-                            </StackPanel>
-                        </ScrollViewer>
-                    </StackPanel>
-                    
+                    <DockPanel>
+                        <Label DockPanel.Dock="Top" Style="{StaticResource base}" Foreground="{StaticResource dark}" FontSize="20" Content="Слои"/>
+                        <ScrollViewer DockPanel.Dock="Top" VerticalScrollBarVisibility="Hidden">
+                        <DockPanel x:Name="layerspanel">
+                            <!--<uc:CollageLayer imgsrc="/Source/3max.png" assetname="testname" HorizontalAlignment="Stretch"/>-->
+                        </DockPanel>
+                    </ScrollViewer>
+                    </DockPanel>
+                        
+
                 </Border>
                 
             </Grid>

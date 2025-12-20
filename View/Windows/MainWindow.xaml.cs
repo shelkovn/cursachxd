@@ -28,7 +28,7 @@ namespace WpfApp1
         static Class1 db = new Class1 ();
         IEnumerable<Resources> resset = db.ResourcesSet.Include(r => r.Author);
         IEnumerable<Resources> resset_filtered = db.ResourcesSet.Include(r => r.Author);
-        IEnumerable<ResultGIFs> collagesest = db.ResultGIFs.Include(p => p.Collage).ThenInclude(c => c.Author).GroupBy(g => g.CollageId).Select(g => g.OrderByDescending(x => x.CreatedAt).First());
+        IEnumerable<ResultGIFs> collageset = db.ResultGIFs.Include(p => p.Collage).ThenInclude(c => c.Author).GroupBy(g => g.CollageId).Select(g => g.OrderByDescending(x => x.CreatedAt).First());
         IEnumerable<ResultGIFs> collageset_filtered = db.ResultGIFs.Include(p => p.Collage).ThenInclude(c => c.Author).GroupBy(g => g.CollageId).Select(g => g.OrderByDescending(x => x.CreatedAt).First());
         public MainWindow()
         {
@@ -259,24 +259,46 @@ namespace WpfApp1
 
         private void SearchAssets(object sender, TextChangedEventArgs e)
         {
-            string querytext = restextbox.Text; 
+            string querytext = restextbox.Text;
+            //using (db = new Class1())
+            //{
+                if (querytext.Trim() != null)
+                {
+                    resset = db.ResourcesSet.Include(r => r.Author);
 
-            if (querytext.Trim() != null)
-            {
-                resset = db.ResourcesSet.Include(r => r.Author);
-                
-                resset_filtered = resset.Where(resource =>
-                
-                    resource.Title.Contains(querytext, StringComparison.OrdinalIgnoreCase)
-                
-                );
-            }
-            else
-            {
-                resset = db.ResourcesSet.Include(r => r.Author);
-                resset_filtered = resset;
-            }
+                    resset_filtered = resset.Where(resource =>
+
+                        resource.Title.Contains(querytext, StringComparison.OrdinalIgnoreCase)
+
+                    );
+                }
+                else
+                {
+                    resset = db.ResourcesSet.Include(r => r.Author);
+                    resset_filtered = resset;
+                }
+            //}
             LoadResources();
+        }
+
+        private void SearchCollages(object sender, TextChangedEventArgs e)
+        {
+            string querytext = collagetb.Text;
+
+            //using (db = new Class1())
+            //{
+                if (querytext.Trim() != null)
+                {
+                    collageset = db.ResultGIFs.Include(p => p.Collage).ThenInclude(c => c.Author).GroupBy(g => g.CollageId).Select(g => g.OrderByDescending(x => x.CreatedAt).First());
+                    collageset_filtered = collageset.Where(c => c.Collage.Title.Contains(querytext, StringComparison.OrdinalIgnoreCase));
+                }
+                else
+                {
+                    collageset = db.ResultGIFs.Include(p => p.Collage).ThenInclude(c => c.Author).GroupBy(g => g.CollageId).Select(g => g.OrderByDescending(x => x.CreatedAt).First()); ;
+                    collageset_filtered = collageset;
+                }
+            //}
+            LoadCollages();
         }
 
         private void SortByName(object sender, RoutedEventArgs e)

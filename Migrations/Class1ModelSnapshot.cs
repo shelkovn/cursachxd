@@ -22,6 +22,87 @@ namespace micpix.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("micpix.Server.Collages", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AuthorId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Height")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Width")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorId");
+
+                    b.ToTable("Collages", (string)null);
+                });
+
+            modelBuilder.Entity("micpix.Server.Layers", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CollageId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("LayerIndex")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Opacity")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ResourceId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Rotation")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("XOffset")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("XScale")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("YOffset")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("YScale")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CollageId");
+
+                    b.HasIndex("ResourceId");
+
+                    b.ToTable("Layers", (string)null);
+                });
+
             modelBuilder.Entity("micpix.Server.Resources", b =>
                 {
                     b.Property<int>("Id")
@@ -49,6 +130,34 @@ namespace micpix.Migrations
                     b.HasIndex("AuthorId");
 
                     b.ToTable("Resources", (string)null);
+                });
+
+            modelBuilder.Entity("micpix.Server.ResultGIFs", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CollageId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("FrameCount")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CollageId");
+
+                    b.ToTable("ResultGIFs", (string)null);
                 });
 
             modelBuilder.Entity("micpix.Server.UserCredential", b =>
@@ -98,6 +207,36 @@ namespace micpix.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
+            modelBuilder.Entity("micpix.Server.Collages", b =>
+                {
+                    b.HasOne("micpix.Server.Users", "Author")
+                        .WithMany()
+                        .HasForeignKey("AuthorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Author");
+                });
+
+            modelBuilder.Entity("micpix.Server.Layers", b =>
+                {
+                    b.HasOne("micpix.Server.Collages", "Collage")
+                        .WithMany("Layers")
+                        .HasForeignKey("CollageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("micpix.Server.Resources", "Resource")
+                        .WithMany()
+                        .HasForeignKey("ResourceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Collage");
+
+                    b.Navigation("Resource");
+                });
+
             modelBuilder.Entity("micpix.Server.Resources", b =>
                 {
                     b.HasOne("micpix.Server.Users", "Author")
@@ -109,6 +248,17 @@ namespace micpix.Migrations
                     b.Navigation("Author");
                 });
 
+            modelBuilder.Entity("micpix.Server.ResultGIFs", b =>
+                {
+                    b.HasOne("micpix.Server.Collages", "Collage")
+                        .WithMany("ResultGIFs")
+                        .HasForeignKey("CollageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Collage");
+                });
+
             modelBuilder.Entity("micpix.Server.UserCredential", b =>
                 {
                     b.HasOne("micpix.Server.Users", "User")
@@ -118,6 +268,13 @@ namespace micpix.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("micpix.Server.Collages", b =>
+                {
+                    b.Navigation("Layers");
+
+                    b.Navigation("ResultGIFs");
                 });
 
             modelBuilder.Entity("micpix.Server.Users", b =>
