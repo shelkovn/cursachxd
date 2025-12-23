@@ -94,6 +94,10 @@ namespace micpix.View.UserControls
 
         private void SliderValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
+            if (sender is Slider slider)
+            {
+                opacityvalue = (decimal)slider.Value;
+            }
             OpacityChange?.Invoke();
         }
 

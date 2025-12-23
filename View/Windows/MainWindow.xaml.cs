@@ -3,6 +3,7 @@ using micpix.View.UserControls;
 using micpix.View.Windows;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Windows;
@@ -14,6 +15,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Xml.Linq;
 
 namespace WpfApp1
 {
@@ -25,7 +27,10 @@ namespace WpfApp1
         private resourceuploadwindow uploadWindow;
         public CollageMakerWindow collageWindow;
         private LoginWindow loginWindow;
-        static Class1 db = new Class1 ();
+        static AppDbContext db = new AppDbContext ();
+        int categoryId;
+        ILookup<int?, Categories> lookup;
+        string resquerytext;
         IEnumerable<Resources> resset = db.ResourcesSet.Include(r => r.Author);
         IEnumerable<Resources> resset_filtered = db.ResourcesSet.Include(r => r.Author);
         IEnumerable<ResultGIFs> collageset = db.ResultGIFs.Include(p => p.Collage).ThenInclude(c => c.Author).GroupBy(g => g.CollageId).Select(g => g.OrderByDescending(x => x.CreatedAt).First());
@@ -35,10 +40,10 @@ namespace WpfApp1
             InitializeComponent();
             try
             {
-                using var db = new Class1();
+                using var db = new AppDbContext();
                 //ObservableCollection<Resources> resset = new ObservableCollection<Resources>(db.ResourcesSet.Include(r => r.Author));
                 //ObservableCollection<Resources> resset_filtered = new ObservableCollection<Resources>(db.ResourcesSet.Include(r => r.Author));
-                //ObservableCollection<ResultGIFs> collagesest = new ObservableCollection<ResultGIFs>(db.ResultGIFs.Include(p => p.Collage).ThenInclude(c => c.Author));
+                //ObservableCollection<ResultGIFs> collageset = new ObservableCollection<ResultGIFs>(db.ResultGIFs.Include(p => p.Collage).ThenInclude(c => c.Author));
                 //ObservableCollection<ResultGIFs> collageset_filtered = new ObservableCollection<ResultGIFs>(db.ResultGIFs.Include(p => p.Collage).ThenInclude(c => c.Author));
 
             }
@@ -71,6 +76,7 @@ namespace WpfApp1
             };
             LoadResources();
             LoadCollages();
+            PopulateCategoryTree(cattree);
         }
 
         private void LoadResources()
@@ -207,7 +213,7 @@ namespace WpfApp1
             if (App.IsLoggedIn)
             {
                 MainWindow current = this;
-                using (var db = new Class1())
+                using (var db = new AppDbContext())
                 {
                     var currentUser = db.UserSet.FirstOrDefault(u => u.Id == App.CurrentUserId);
                     var collage = new Collages()
@@ -257,27 +263,30 @@ namespace WpfApp1
             }
         }
 
-        private void SearchAssets(object sender, TextChangedEventArgs e)
+        private void SearchAssets(object sender = null, TextChangedEventArgs e = null)
         {
-            string querytext = restextbox.Text;
-            //using (db = new Class1())
-            //{
-                if (querytext.Trim() != null)
-                {
-                    resset = db.ResourcesSet.Include(r => r.Author);
+            resquerytext = restextbox.Text; 
+            LoadResources();
+        }
 
-                    resset_filtered = resset.Where(resource =>
+        private void FilterResources()
+        {
+            resset = db.ResourcesSet.Include(r => r.Author).Include(r => r.Tags).ThenInclude(t => t.Category);
+            resset_filtered = resset;
+            if (resquerytext != null && resquerytext.Trim() != null)
+            {
+                resset_filtered = resset.Where(resource =>
 
-                        resource.Title.Contains(querytext, StringComparison.OrdinalIgnoreCase)
+                    resource.Title.Contains(resquerytext, StringComparison.OrdinalIgnoreCase)
+                );
+            }
+            if (categoryId != null && categoryId >1)
+            {
+                List<int> categoryIds = new List<int> { categoryId };
+                BuildDescendantIds(categoryId, lookup, categoryIds);
 
-                    );
-                }
-                else
-                {
-                    resset = db.ResourcesSet.Include(r => r.Author);
-                    resset_filtered = resset;
-                }
-            //}
+                resset_filtered = resset_filtered.Where(r => r.Tags.Any(rt => categoryIds.Contains(rt.CategoryId)));
+            }
             LoadResources();
         }
 
@@ -285,23 +294,20 @@ namespace WpfApp1
         {
             string querytext = collagetb.Text;
 
-            //using (db = new Class1())
-            //{
-                if (querytext.Trim() != null)
-                {
-                    collageset = db.ResultGIFs.Include(p => p.Collage).ThenInclude(c => c.Author).GroupBy(g => g.CollageId).Select(g => g.OrderByDescending(x => x.CreatedAt).First());
-                    collageset_filtered = collageset.Where(c => c.Collage.Title.Contains(querytext, StringComparison.OrdinalIgnoreCase));
-                }
-                else
-                {
-                    collageset = db.ResultGIFs.Include(p => p.Collage).ThenInclude(c => c.Author).GroupBy(g => g.CollageId).Select(g => g.OrderByDescending(x => x.CreatedAt).First()); ;
-                    collageset_filtered = collageset;
-                }
-            //}
+            if (querytext.Trim() != null)
+            {
+                collageset = db.ResultGIFs.Include(p => p.Collage).ThenInclude(c => c.Author).GroupBy(g => g.CollageId).Select(g => g.OrderByDescending(x => x.CreatedAt).First());
+                collageset_filtered = collageset.Where(c => c.Collage.Title.Contains(querytext, StringComparison.OrdinalIgnoreCase));
+            }
+            else
+            {
+                collageset = db.ResultGIFs.Include(p => p.Collage).ThenInclude(c => c.Author).GroupBy(g => g.CollageId).Select(g => g.OrderByDescending(x => x.CreatedAt).First());
+                collageset_filtered = collageset;
+            }
             LoadCollages();
         }
 
-        private void SortByName(object sender, RoutedEventArgs e)
+        /*private void SortByName(object sender, RoutedEventArgs e)
         {
             if (resnamesort.IsChecked == true)
             {
@@ -317,6 +323,68 @@ namespace WpfApp1
                 resset_filtered = resset_filtered.OrderBy(r => r.Title);
                 LoadResources();
             }
+        }*/
+
+        public void PopulateCategoryTree(MenuItem cattree)
+        {
+            categoryTree.Items.Clear();
+
+            var allCategories = db.Categories.ToList();
+            lookup = allCategories.ToLookup(c => c.ParentId);
+
+            foreach (var rootCategory in lookup[null])
+            {
+                var node = new TreeViewItem
+                {
+                    Header = rootCategory.Name,
+                    Tag = rootCategory.Id
+                };
+                categoryTree.Items.Add(node);
+                AddChildNodesRecursive(node, lookup, rootCategory.Id);
+            }
+
+            categoryTree.SelectedItemChanged += CategoryTree_SelectedItemChanged;
         }
+
+        private void CategoryTree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            if (categoryTree.SelectedItem is TreeViewItem selectedNode)
+            {
+                cattree.Header = $"{selectedNode.Header}";
+                categoryId = (int)selectedNode.Tag;
+                FilterResources();
+            }
+        }
+
+        private void BuildDescendantIds(int parentId, ILookup<int?, Categories> lookup, List<int> result)
+        {
+            foreach (var child in lookup[parentId])
+            {
+                result.Add(child.Id);
+                BuildDescendantIds(child.Id, lookup, result);
+            }
+        }
+
+        private void AddChildNodesRecursive(TreeViewItem parentNode, ILookup<int?, Categories> lookup, int parentId)
+        {
+            foreach (var child in lookup[parentId])
+            {
+                TreeViewItem childNode = CreateTreeNode(child);
+                parentNode.Items.Add(childNode);
+                AddChildNodesRecursive(childNode, lookup, child.Id);
+            }
+        }
+        private TreeViewItem CreateTreeNode(Categories category)
+        {
+            TreeViewItem node = new TreeViewItem
+            {
+                FontSize = 14,
+                Header = category.Name,
+                Tag = category.Id,
+            };
+            //node.Click += MenuItem_Click;
+            return node;
+        }
+
     }
 }

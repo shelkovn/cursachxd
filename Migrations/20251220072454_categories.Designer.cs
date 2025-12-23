@@ -11,7 +11,7 @@ using micpix.Server;
 
 namespace micpix.Migrations
 {
-    [DbContext(typeof(Class1))]
+    [DbContext(typeof(AppDbContext))]
     [Migration("20251220072454_categories")]
     partial class categories
     {

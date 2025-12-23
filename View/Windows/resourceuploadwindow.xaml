@@ -37,6 +37,8 @@
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
                     <RowDefinition />
                 </Grid.RowDefinitions>
                 <Label Style="{StaticResource base}" FontSize="14" Foreground="{StaticResource darkdark}" Content="Данные"/>
@@ -49,6 +51,12 @@
                 <Label x:Name="dimensionsLabel" Grid.Row="2" Grid.Column="1" Style="{StaticResource base}" FontSize="14" Foreground="{StaticResource dark}" Content="-"/>
                 <Label x:Name="sizeLabel" Grid.Row="3" Grid.Column="1" Style="{StaticResource base}" FontSize="14" Foreground="{StaticResource dark}" Content="-"/>
                 <Label x:Name="lengthLabel" Grid.Row="4" Grid.Column="1" Style="{StaticResource base}" FontSize="14" Foreground="{StaticResource dark}" Content="-"/>
+                <Menu Grid.Row="5" Grid.ColumnSpan="2" Background="{StaticResource light}" DockPanel.Dock="Right" Margin="5,0,5,0">
+                    <MenuItem x:Name="cattree" Header="Категории" Style="{StaticResource base}" FontSize="14">
+                        <TreeView FontSize="14" x:Name="categoryTree"/>
+                    </MenuItem>
+                </Menu>
+                <WrapPanel Grid.Row="6" Grid.ColumnSpan="2" x:Name="tagspanel"/>
             </Grid>
         </Border>
 

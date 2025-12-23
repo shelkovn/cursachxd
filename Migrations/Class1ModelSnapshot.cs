@@ -10,7 +10,7 @@ using micpix.Server;
 
 namespace micpix.Migrations
 {
-    [DbContext(typeof(Class1))]
+    [DbContext(typeof(AppDbContext))]
     partial class Class1ModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
@@ -123,6 +123,29 @@ namespace micpix.Migrations
                     b.HasIndex("ResourceId");
 
                     b.ToTable("Layers", (string)null);
+                });
+
+            modelBuilder.Entity("micpix.Server.ResourceCategoryTags", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ResourceId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("ResourceId");
+
+                    b.ToTable("ResourceCategoryTags", (string)null);
                 });
 
             modelBuilder.Entity("micpix.Server.Resources", b =>
@@ -269,6 +292,25 @@ namespace micpix.Migrations
                     b.Navigation("Resource");
                 });
 
+            modelBuilder.Entity("micpix.Server.ResourceCategoryTags", b =>
+                {
+                    b.HasOne("micpix.Server.Categories", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("micpix.Server.Resources", "Resource")
+                        .WithMany("Tags")
+                        .HasForeignKey("ResourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+
+                    b.Navigation("Resource");
+                });
+
             modelBuilder.Entity("micpix.Server.Resources", b =>
                 {
                     b.HasOne("micpix.Server.Users", "Author")
@@ -312,6 +354,11 @@ namespace micpix.Migrations
                     b.Navigation("Layers");
 
                     b.Navigation("ResultGIFs");
+                });
+
+            modelBuilder.Entity("micpix.Server.Resources", b =>
+                {
+                    b.Navigation("Tags");
                 });
 
             modelBuilder.Entity("micpix.Server.Users", b =>

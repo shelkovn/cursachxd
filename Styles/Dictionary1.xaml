@@ -5,9 +5,9 @@
     <SolidColorBrush x:Key="medium" Color="#8B7EC9"/>
     <SolidColorBrush x:Key="light" Color="#B9ADED"/>
     <SolidColorBrush x:Key="gray" Color="#D9D9D9"/>
-    <SolidColorBrush x:Key="blue" Color="#0895ED"/>
+    <SolidColorBrush x:Key="darkblue" Color="#0895ED"/>
     <SolidColorBrush x:Key="lightblue" Color="#D1F4F6"/>
-    <SolidColorBrush x:Key="darkblue" Color="#08A8ED"/>
+    <SolidColorBrush x:Key="blue" Color="#08A8ED"/>
 
     <Style x:Key="base" TargetType="Control">
         <Setter Property="FontSize" Value="24"/>

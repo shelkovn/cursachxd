@@ -31,10 +31,10 @@ namespace micpix.View.Windows
     {
         private resourceuploadwindow uploadWindow;
         public MainWindow mainwindow;
-        static Class1 db = new Class1();
+        static AppDbContext db = new AppDbContext();
         public Collages currentCollage; //= db.Collages.Include(с => с.Layers).ThenInclude(l => l.Resource).First(); // ЗАГЛУШКА
         Layers targetLayer;
-        IEnumerable<Layers> currentLayers;
+        ObservableCollection<Layers> currentLayers;
         IEnumerable<Resources> resset = db.ResourcesSet.Include(r => r.Author);
         IEnumerable<Resources> resset_filtered = db.ResourcesSet.Include(r => r.Author);
         double draginitx, draginity, dragreleasex, dragreleasey, deltax, deltay;
@@ -51,7 +51,7 @@ namespace micpix.View.Windows
             InitializeComponent();
             try
             {
-                using var db = new Class1();
+                using var db = new AppDbContext();
                 ObservableCollection<Resources> resset = new ObservableCollection<Resources>(db.ResourcesSet.Include(r => r.Author));
                 ObservableCollection<Resources> resset_filtered = new ObservableCollection<Resources>(db.ResourcesSet.Include(r => r.Author));
 
@@ -88,9 +88,127 @@ namespace micpix.View.Windows
             };
         }
 
-        private void InitLayerListActions()
+        private void InitLayerListActions(CollageLayer control)
         {
+            control.OpacityChange += () =>
+            {
+                using (var db = new AppDbContext())
+                {
+                    var dbLayer = db.Layers.Find(control.dblayerid);
+                    if (dbLayer != null)
+                    {
+                        var op = control.opacityvalue;
+                        dbLayer.Opacity = op;
 
+                        var collageLayer = currentCollage?.Layers?.FirstOrDefault(l => l.Id == dbLayer.Id);
+                        if (collageLayer != null)
+                        {
+                            collageLayer.Opacity = op;
+                        }
+                        collageLayer = currentLayers.FirstOrDefault(l => l.Id == dbLayer.Id);
+                        if (collageLayer != null)
+                        {
+                            collageLayer.Opacity = op;
+                        }
+
+                        db.SaveChanges();
+                        RenderCollage();
+                    }
+                }
+            };
+
+            control.Delete += () =>
+            {
+                using (var db = new AppDbContext())
+                {
+                    var dbLayer = db.Layers.Find(control.dblayerid);
+                    if (dbLayer != null)
+                    {
+                        db.Layers.Remove(dbLayer);
+
+                        var collageLayer = currentCollage?.Layers?.FirstOrDefault(l => l.Id == dbLayer.Id);
+                        if (collageLayer != null)
+                        {
+                            currentCollage.Layers.Remove(collageLayer);
+                        }
+
+                        var memoryLayer = currentLayers.FirstOrDefault(l => l.Id == dbLayer.Id);
+                        if (memoryLayer != null)
+                        {
+                            currentLayers.Remove(memoryLayer);
+                        }
+
+                        db.SaveChanges();
+                        LoadCollageLayers();
+                        RenderCollage();
+                    }
+                }
+            };
+
+            control.MoveUp += () =>
+            {
+                using (var db = new AppDbContext())
+                {
+                    var currentLayer = db.Layers.Find(control.dblayerid);
+                    if (currentLayer == null) return;
+
+                    var collageLayers = db.Layers
+                        .Where(l => l.CollageId == currentLayer.CollageId)
+                        .OrderBy(l => l.LayerIndex)
+                        .ToList();
+
+                    var currentIndex = collageLayers.FindIndex(l => l.Id == currentLayer.Id);
+
+                    if (currentIndex < 0) return; 
+
+                    if (currentIndex >= collageLayers.Count - 1) return;
+
+                    var layerAbove = collageLayers[currentIndex + 1];
+
+                    int tempIndex = currentLayer.LayerIndex;
+                    currentLayer.LayerIndex = layerAbove.LayerIndex;
+                    layerAbove.LayerIndex = tempIndex;
+
+                    db.Layers.Update(currentLayer);
+                    db.Layers.Update(layerAbove);
+
+                    db.SaveChanges();
+                    UpdateLocalLayerIndices(currentLayer.Id, layerAbove.Id, currentLayer.LayerIndex, layerAbove.LayerIndex);
+                    RenderCollage();
+                    LoadCollageLayers();
+                }
+            };
+
+            control.MoveDown += () =>
+            {
+                using (var db = new AppDbContext())
+                {
+                    var currentLayer = db.Layers.Find(control.dblayerid);
+                    if (currentLayer == null) return;
+
+                    var collageLayers = db.Layers
+                        .Where(l => l.CollageId == currentLayer.CollageId)
+                        .OrderBy(l => l.LayerIndex)
+                        .ToList();
+
+                    var currentIndex = collageLayers.FindIndex(l => l.Id == currentLayer.Id);
+
+                    if (currentIndex < 1) return;
+
+                    var layerAbove = collageLayers[currentIndex - 1];
+
+                    int tempIndex = currentLayer.LayerIndex;
+                    currentLayer.LayerIndex = layerAbove.LayerIndex;
+                    layerAbove.LayerIndex = tempIndex;
+
+                    db.Layers.Update(currentLayer);
+                    db.Layers.Update(layerAbove);
+
+                    db.SaveChanges();
+                    RenderCollage();
+                    LoadCollageLayers();
+                }
+            };
         }
 
         public void LoadCollageLayers()
@@ -103,10 +221,11 @@ namespace micpix.View.Windows
                     collagewidth.Text = currentCollage.Width.ToString();
                     collageheight.Text = currentCollage.Height.ToString();
                     layerspanel.Children.Clear();
-                    currentLayers = currentCollage.Layers.OrderBy(x => x.LayerIndex);
-                    if (currentLayers.Any())
+                    if (currentCollage.Layers.Any())
                     {
-                        foreach (var layer in currentLayers)
+                        currentLayers = currentCollage.Layers;
+                        var currentLayerslist = currentLayers.OrderBy(l => l.LayerIndex);
+                        foreach (var layer in currentLayerslist)
                         {
                             var usercontrol = new CollageLayer()
                             {
@@ -118,7 +237,8 @@ namespace micpix.View.Windows
                                 dblayerid = layer.Id
                                 
                             };
-                            usercontrol.MouseUp += LayerListSelect;
+                            //usercontrol.MouseUp += LayerListSelect;
+                            InitLayerListActions(usercontrol);
                             DockPanel.SetDock(usercontrol, Dock.Top);
                             layerspanel.Children.Add(usercontrol);
                         }
@@ -173,7 +293,7 @@ namespace micpix.View.Windows
                     targetLayer.XOffset += (int)xdif;
                     targetLayer.YOffset += (int)ydif;
                     //MessageBox.Show("changed pos");
-                    UpdateLayerInDatabase();
+                    UpdateTargetLayerInDatabase();
                     RenderCollage();
                     TargetLayerDisplayData();
                 }
@@ -182,12 +302,12 @@ namespace micpix.View.Windows
 
         private void RenderCollage()
         {
-            if (currentCollage != null && collagecanvas != null)
+            if (currentCollage != null && collagecanvas != null && currentCollage.Layers.Any())
             {
                 try
                 {
                     collagecanvas.Children.Clear();
-                    currentLayers = currentCollage.Layers.OrderBy(x => x.LayerIndex).ToList();
+                    var currentLayers = currentCollage.Layers.OrderBy(x => x.LayerIndex);
                     if (!currentLayers.Any()) return;
 
                     canvasWidth = collagecanvas.ActualWidth;
@@ -304,7 +424,7 @@ namespace micpix.View.Windows
                     else
                         targetLayer.Rotation+=3;
                     
-                    UpdateLayerInDatabase();
+                    UpdateTargetLayerInDatabase();
                     RenderCollage();
                     TargetLayerDisplayData();
                 }
@@ -567,7 +687,7 @@ namespace micpix.View.Windows
             {
                 int resourceid = (int)control.itemid;
 
-                using (var db = new Class1()) // Create new context for this operation
+                using (var db = new AppDbContext()) // Create new context for this operation
                 {
                     // Load resources and collage with the SAME context
                     Resources res = db.ResourcesSet.Find(resourceid);
@@ -593,7 +713,7 @@ namespace micpix.View.Windows
                     db.SaveChanges();
 
                     if (currentCollage.Layers == null)
-                        currentCollage.Layers = new List<Layers>();
+                        currentCollage.Layers = new ObservableCollection<Layers>();
                     currentCollage.Layers.Add(layer);
 
                     targetLayer = layer;
@@ -745,7 +865,7 @@ namespace micpix.View.Windows
                 if (int.TryParse(targetx.Text, out int x))
                 {
                     targetLayer.XOffset = x;
-                    UpdateLayerInDatabase();
+                    UpdateTargetLayerInDatabase();
                     RenderCollage(); 
                 }
                 else
@@ -760,7 +880,7 @@ namespace micpix.View.Windows
                 if (int.TryParse(targety.Text, out int y))
                 {
                     targetLayer.YOffset = y;
-                    UpdateLayerInDatabase();
+                    UpdateTargetLayerInDatabase();
                     RenderCollage();
                 }
                 else
@@ -776,7 +896,7 @@ namespace micpix.View.Windows
                 {
                     scaleX = Math.Clamp(scaleX, 0, 1500);
                     targetLayer.XScale = scaleX;
-                    UpdateLayerInDatabase();
+                    UpdateTargetLayerInDatabase();
                     RenderCollage();
                 }
                 else
@@ -792,7 +912,7 @@ namespace micpix.View.Windows
                 {
                     scaleY = Math.Clamp(scaleY, 0, 1500);
                     targetLayer.YScale = scaleY;
-                    UpdateLayerInDatabase();
+                    UpdateTargetLayerInDatabase();
                     RenderCollage();
                 }
                 else
@@ -809,7 +929,7 @@ namespace micpix.View.Windows
                     rotation = rotation % 360;
                     if (rotation < 0) rotation += 360;
                     targetLayer.Rotation = rotation;
-                    UpdateLayerInDatabase();
+                    UpdateTargetLayerInDatabase();
                     RenderCollage();
                 }
                 else
@@ -826,7 +946,7 @@ namespace micpix.View.Windows
                     // Limit to 0.00 - 1.00
                     opacity = Math.Clamp(opacity, 0, 1);
                     targetLayer.Opacity = opacity;
-                    UpdateLayerInDatabase();
+                    UpdateTargetLayerInDatabase();
                     RenderCollage();
                 }
                 else
@@ -836,13 +956,13 @@ namespace micpix.View.Windows
             };
         }
 
-        private void UpdateLayerInDatabase()
+        private void UpdateTargetLayerInDatabase()
         {
             if (targetLayer == null) return;
 
             try
             {
-                using (var db = new Class1())
+                using (var db = new AppDbContext())
                 {
                     var dbLayer = db.Layers.Find(targetLayer.Id);
                     if (dbLayer != null)

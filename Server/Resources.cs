@@ -19,5 +19,7 @@ namespace micpix.Server
         // Navigation property
         public virtual Users Author { get; set; }
 
+        public ICollection<ResourceCategoryTags> Tags { get; set; }
+
     }
 }

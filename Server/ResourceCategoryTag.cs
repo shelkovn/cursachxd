@@ -6,7 +6,16 @@ using System.Threading.Tasks;
 
 namespace micpix.Server
 {
-    internal class ResourceCategoryTag
+    public class ResourceCategoryTags
     {
+        public int Id { get; set; }
+        required public int CategoryId { get; set; }
+
+        required public int ResourceId { get; set; }
+
+        // Navigation properties
+        public virtual Categories Category { get; set; }
+
+        public virtual Resources Resource { get; set; }
     }
 }

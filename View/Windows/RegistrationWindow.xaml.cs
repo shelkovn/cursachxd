@@ -83,7 +83,7 @@ namespace micpix.View.Windows
             // попытка добавить пользователя в базу
             try
             {
-                using (var db = new Class1())
+                using (var db = new AppDbContext())
                 {
                     bool usernameExists = db.UserSet.Any(u => u.Username == username);
                     if (usernameExists)

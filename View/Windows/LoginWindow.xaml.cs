@@ -59,7 +59,7 @@ namespace micpix.View.Windows
 
             try
             {
-                using (var db = new Class1())
+                using (var db = new AppDbContext())
                 {
                     var user = db.UserSet.FirstOrDefault(u => u.Username == username);
 

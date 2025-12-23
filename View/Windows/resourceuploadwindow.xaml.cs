@@ -1,6 +1,7 @@
 ﻿using micpix.Server;
 using Microsoft.Win32;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -17,11 +18,90 @@ namespace micpix.View.Windows
         private string imageDimensions = "";
         private string fileSize = "";
         private string frameCount = "-";
+        List<int> catids = new List<int>();
         public Image d;
 
         public resourceuploadwindow()
         {
             InitializeComponent();
+            PopulateCategoryTree(cattree);
+        }
+
+        public void PopulateCategoryTree(MenuItem cattree)
+        {
+            categoryTree.Items.Clear();
+            using (var db = new AppDbContext())
+            {
+                var allCategories = db.Categories.ToList();
+                var lookup = allCategories.ToLookup(c => c.ParentId);
+
+                foreach (var rootCategory in lookup[null])
+                {
+                    var node = new TreeViewItem
+                    {
+                        Header = rootCategory.Name,
+                        Tag = rootCategory.Id
+                    };
+                    categoryTree.Items.Add(node);
+                    AddChildNodesRecursive(node, lookup, rootCategory.Id);
+                }
+
+                categoryTree.SelectedItemChanged += CategoryTree_SelectedItemChanged;
+            }
+        }
+        private void AddChildNodesRecursive(TreeViewItem parentNode, ILookup<int?, Categories> lookup, int parentId)
+        {
+            foreach (var child in lookup[parentId])
+            {
+                TreeViewItem childNode = CreateTreeNode(child);
+                parentNode.Items.Add(childNode);
+                AddChildNodesRecursive(childNode, lookup, child.Id);
+            }
+        }
+        private TreeViewItem CreateTreeNode(Categories category)
+        {
+            TreeViewItem node = new TreeViewItem
+            {
+                FontSize = 14,
+                Header = category.Name,
+                Tag = category.Id,
+            };
+            return node;
+        }
+
+        private void CategoryTree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            if (categoryTree.SelectedItem is TreeViewItem selectedNode)
+            {
+                //cattree.Header = $"{selectedNode.Header}";
+                int categoryId = (int)selectedNode.Tag;
+                if (!catids.Contains(categoryId))
+                {
+                    catids.Add(categoryId);
+                    var taglabel = new Label
+                    {
+                        Content = $"X {selectedNode.Header}",
+                        Tag = categoryId,
+                        Style = (Style)Application.Current.FindResource("base"),
+                        Background = (Brush)Application.Current.FindResource("gray"),
+                        Foreground = (Brush)Application.Current.FindResource("darkblue"),
+                        Margin = new Thickness(3),
+                        FontSize = 10,
+                    };
+                    taglabel.MouseDown += DeleteTag;
+                    tagspanel.Children.Add(taglabel);
+                }
+                //FilterResources();
+            }
+        }
+
+        private void DeleteTag(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (sender is Label label)
+            {
+                catids.Remove((int)label.Tag);
+                tagspanel.Children.Remove(label);
+            }
         }
 
         private void BrowseButton_Click(object sender, RoutedEventArgs e)
@@ -148,7 +228,7 @@ namespace micpix.View.Windows
                 string imagePathForDb = "/Source/" + fileName;
 
                 // проверка на дубликаты по имени или пути файла
-                using (var db = new Class1())
+                using (var db = new AppDbContext())
                 {
                     bool filenameExists = db.ResourcesSet.Any(r => r.ImagePath == imagePathForDb);
                     if (filenameExists)
@@ -206,7 +286,7 @@ namespace micpix.View.Windows
                 }
 
                 // добавить в БД
-                using (var db = new Class1())
+                using (var db = new AppDbContext())
                 {
                     var currentUser = db.UserSet.FirstOrDefault(u => u.Id == App.CurrentUserId);
 
@@ -223,6 +303,27 @@ namespace micpix.View.Windows
 
                     db.ResourcesSet.Add(resource);
                     db.SaveChanges();
+
+                    if (catids != null && catids.Any())
+                    {
+                        foreach (int categoryId in catids)
+                        {
+                            var category = db.Categories.FirstOrDefault(c => c.Id == categoryId);
+                            if (category != null)
+                            {
+                                var resourceTag = new ResourceCategoryTags
+                                {
+                                    ResourceId = resource.Id,
+                                    CategoryId = categoryId,
+                                    Resource = resource,
+                                    Category = category
+                                };
+
+                                db.ResourceCategoryTags.Add(resourceTag);
+                            }
+                        }
+                        db.SaveChanges();
+                    }
                 }
 
                 MessageBox.Show($"Спасибо за новый элемент, {App.CurrentUsername}");

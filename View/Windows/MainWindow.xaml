@@ -50,13 +50,18 @@
             <Border Grid.RowSpan="3" Style="{StaticResource darkborder}"/>
             <DockPanel>
                 <Label DockPanel.Dock="Top" Style="{StaticResource base}" Foreground="{StaticResource darkdark}" FontSize="24" Content="Последние загрузки" Margin="15"/>
-                <Label Content="Сортировать по:" FontSize="16" Foreground="{StaticResource dark}" Style="{StaticResource base}" Margin="5,0,0,0"/>
+                <!--<Label Content="Сортировать по:" FontSize="16" Foreground="{StaticResource dark}" Style="{StaticResource base}" Margin="5,0,0,0"/>
                 <CheckBox x:Name="resdatesort" Checked="SortByDate" FontSize="16" Foreground="{StaticResource dark}" Style="{StaticResource base}" Content="Дата"/>
-                <CheckBox x:Name="resnamesort" Checked="SortByName" FontSize="16" Foreground="{StaticResource dark}" Style="{StaticResource base}" Content="Название"/>
-                
-                <Border DockPanel.Dock="Bottom" Style="{StaticResource textboxborder}" BorderThickness="2" Margin="10,0,15,0">
+                <CheckBox x:Name="resnamesort" Checked="SortByName" FontSize="16" Foreground="{StaticResource dark}" Style="{StaticResource base}" Content="Название"/>-->
+                <Menu Background="{StaticResource light}" DockPanel.Dock="Right" Margin="0,0,15,0">
+                    <MenuItem x:Name="cattree" Header="Категории" Style="{StaticResource base}" FontSize="14">
+                        <TreeView FontSize="14" x:Name="categoryTree"/>
+                    </MenuItem>
+                </Menu>
+                <Border DockPanel.Dock="Right" Style="{StaticResource textboxborder}" BorderThickness="2" Margin="15,0,10,0"> 
                     <TextBox x:Name="restextbox" Background="{StaticResource gray}" FontSize="16" Style="{StaticResource inputtextbox}" TextChanged="SearchAssets"/>
                 </Border>
+                
             </DockPanel>
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden">
                 <WrapPanel x:Name="assetspanel" DataContext="{Binding Resources}">
