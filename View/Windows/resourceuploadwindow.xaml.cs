@@ -11,7 +11,7 @@ using WpfApp1;
 
 namespace micpix.View.Windows
 {
-    public partial class resourceuploadwindow : Window
+    public partial class ResourceUploadWindow : Window
     {
         private string selectedImagePath = "";
         private string imageFormat = "";
@@ -21,7 +21,7 @@ namespace micpix.View.Windows
         List<int> catids = new List<int>();
         public Image d;
 
-        public resourceuploadwindow()
+        public ResourceUploadWindow()
         {
             InitializeComponent();
             PopulateCategoryTree(cattree);

@@ -6,7 +6,8 @@
         xmlns:local="clr-namespace:micpix.View.Windows"
         xmlns:uc="clr-namespace:micpix.View.UserControls"
         mc:Ignorable="d"
-        Title="RegistrationWindow" Height="500" Width="400">
+        Title="Регистрация MicPix" Height="500" Width="400"
+        FocusManager.FocusedElement="{Binding ElementName=usernametextbox}">
     <Grid Background="{StaticResource medium}">
         <Grid.RowDefinitions>
             <RowDefinition Height="0.2*"/>
@@ -30,7 +31,7 @@
             </Border>
 
             <Border Style="{StaticResource textboxborder}" Grid.ColumnSpan="2" Margin="0,30,0,0"  MaxWidth="250" MaxHeight="50">
-                <Button VerticalAlignment="Bottom" Grid.Row="1" FontSize="20" Style="{StaticResource base}" Content="Зарегистрироваться" Click="RegisterButton_Click" Background="{StaticResource light}" Foreground="{StaticResource darkdark}"/>
+                <Button IsDefault="True" VerticalAlignment="Bottom" Grid.Row="1" FontSize="20" Style="{StaticResource base}" Content="Зарегистрироваться" Click="RegisterButton_Click" Background="{StaticResource light}" Foreground="{StaticResource darkdark}"/>
             </Border>
         </StackPanel>
 

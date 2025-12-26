@@ -1,4 +1,4 @@
-﻿<Window x:Class="micpix.View.Windows.resourceuploadwindow"
+﻿<Window x:Class="micpix.View.Windows.ResourceUploadWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:micpix.View.Windows"
         xmlns:gif="http://wpfanimatedgif.codeplex.com"
         mc:Ignorable="d"
-        Title="resourceuploadwindow" Height="500" Width="500">
+        Title="Загрузить элемент" Height="500" Width="500">
     <Grid Background="{StaticResource medium}">
         <Grid.RowDefinitions>
             <RowDefinition Height="0.2*"/>

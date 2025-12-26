@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:micpix.View.Windows"
         xmlns:uc="clr-namespace:micpix.View.UserControls"
         mc:Ignorable="d"
-        Title="LoginWindow" Height="500" Width="400"
+        Title="Вход MicPix" Height="500" Width="400"
         FocusManager.FocusedElement="{Binding ElementName=usernametextbox}">
     <Grid Background="{StaticResource medium}">
         <Grid.RowDefinitions>

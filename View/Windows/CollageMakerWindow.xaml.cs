@@ -21,6 +21,7 @@ using WpfApp1;
 using WpfAnimatedGif;
 using System.Diagnostics;
 using ImageMagick;
+using Microsoft.Win32;
 
 namespace micpix.View.Windows
 {
@@ -29,7 +30,7 @@ namespace micpix.View.Windows
     /// </summary>
     public partial class CollageMakerWindow : Window
     {
-        private resourceuploadwindow uploadWindow;
+        private ResourceUploadWindow uploadWindow;
         public MainWindow mainwindow;
         static AppDbContext db = new AppDbContext();
         public Collages currentCollage; //= db.Collages.Include(с => с.Layers).ThenInclude(l => l.Resource).First(); // ЗАГЛУШКА
@@ -37,6 +38,9 @@ namespace micpix.View.Windows
         ObservableCollection<Layers> currentLayers;
         IEnumerable<Resources> resset = db.ResourcesSet.Include(r => r.Author);
         IEnumerable<Resources> resset_filtered = db.ResourcesSet.Include(r => r.Author);
+        ILookup<int?, Categories> lookup;
+        int fps = 30, categoryId;
+        string resquerytext;
         double draginitx, draginity, dragreleasex, dragreleasey, deltax, deltay;
         double canvasWidth;
         double canvasHeight;
@@ -64,6 +68,7 @@ namespace micpix.View.Windows
             LoadCollageLayers();
             RenderCollage();
             InitializeLayerTextHandlers();
+            PopulateCategoryTree(cattree);
             pageheader.LoginAction = () =>
             {
                 MessageBoxResult result = MessageBox.Show(
@@ -145,7 +150,7 @@ namespace micpix.View.Windows
                 }
             };
 
-            control.MoveUp += () =>
+            control.MoveDown += () =>
             {
                 using (var db = new AppDbContext())
                 {
@@ -169,17 +174,38 @@ namespace micpix.View.Windows
                     currentLayer.LayerIndex = layerAbove.LayerIndex;
                     layerAbove.LayerIndex = tempIndex;
 
+                    var collageLayer = currentCollage?.Layers?.FirstOrDefault(l => l.Id == currentLayer.Id);
+                    if (collageLayer != null)
+                    {
+                        collageLayer.LayerIndex = currentLayer.LayerIndex;
+                    }
+                    var memoryLayer = currentLayers.FirstOrDefault(l => l.Id == currentLayer.Id);
+                    if (memoryLayer != null)
+                    {
+                        memoryLayer.LayerIndex = currentLayer.LayerIndex;
+                    }
+                    var collageLayerabove = currentCollage?.Layers?.FirstOrDefault(l => l.Id == layerAbove.Id);
+                    if (collageLayerabove != null)
+                    {
+                        collageLayerabove.LayerIndex = layerAbove.LayerIndex;
+                    }
+                    var memoryLayerabove = currentLayers.FirstOrDefault(l => l.Id == layerAbove.Id);
+                    if (memoryLayerabove != null)
+                    {
+                        memoryLayerabove.LayerIndex = layerAbove.LayerIndex;
+                    }
+
                     db.Layers.Update(currentLayer);
                     db.Layers.Update(layerAbove);
 
                     db.SaveChanges();
-                    UpdateLocalLayerIndices(currentLayer.Id, layerAbove.Id, currentLayer.LayerIndex, layerAbove.LayerIndex);
+                    //UpdateLocalLayerIndices(currentLayer.Id, layerAbove.Id, currentLayer.LayerIndex, layerAbove.LayerIndex);
                     RenderCollage();
                     LoadCollageLayers();
                 }
             };
 
-            control.MoveDown += () =>
+            control.MoveUp += () =>
             {
                 using (var db = new AppDbContext())
                 {
@@ -200,6 +226,27 @@ namespace micpix.View.Windows
                     int tempIndex = currentLayer.LayerIndex;
                     currentLayer.LayerIndex = layerAbove.LayerIndex;
                     layerAbove.LayerIndex = tempIndex;
+
+                    var collageLayer = currentCollage?.Layers?.FirstOrDefault(l => l.Id == currentLayer.Id);
+                    if (collageLayer != null)
+                    {
+                        collageLayer.LayerIndex = currentLayer.LayerIndex;
+                    }
+                    var memoryLayer = currentLayers.FirstOrDefault(l => l.Id == currentLayer.Id);
+                    if (memoryLayer != null)
+                    {
+                        memoryLayer.LayerIndex = currentLayer.LayerIndex;
+                    }
+                    var collageLayerabove = currentCollage?.Layers?.FirstOrDefault(l => l.Id == layerAbove.Id);
+                    if (collageLayerabove != null)
+                    {
+                        collageLayerabove.LayerIndex = layerAbove.LayerIndex;
+                    }
+                    var memoryLayerabove = currentLayers.FirstOrDefault(l => l.Id == layerAbove.Id);
+                    if (memoryLayer != null)
+                    {
+                        memoryLayerabove.LayerIndex = layerAbove.LayerIndex;
+                    }
 
                     db.Layers.Update(currentLayer);
                     db.Layers.Update(layerAbove);
@@ -272,7 +319,7 @@ namespace micpix.View.Windows
 
         private void DragImage(object sender, MouseEventArgs e)
         {
-            if (sender is Image control && e.LeftButton == MouseButtonState.Pressed)
+            if (sender is Image control && e.LeftButton == MouseButtonState.Pressed && targetLayer.Id == (int)control.Tag)
             {
                 Canvas.SetLeft(control, (e.GetPosition(collagecanvas).X - deltax));
                 Canvas.SetTop(control, (e.GetPosition(collagecanvas).Y - deltay));
@@ -302,7 +349,7 @@ namespace micpix.View.Windows
 
         private void RenderCollage()
         {
-            if (currentCollage != null && collagecanvas != null && currentCollage.Layers.Any())
+            if (currentCollage != null && collagecanvas != null && currentCollage.Layers != null)
             {
                 try
                 {
@@ -326,20 +373,6 @@ namespace micpix.View.Windows
                     offsetX = (canvasWidth - (currentCollage.Width * scale)) / 2;
                     offsetY = (canvasHeight - (currentCollage.Height * scale)) / 2;
 
-                    Rectangle border = new Rectangle
-                    {
-                        Width = currentCollage.Width * scale,
-                        Height = currentCollage.Height * scale,
-                        Stroke = Brushes.Black,
-                        StrokeThickness = 1,
-                        StrokeDashArray = new DoubleCollection() { 5, 5 }, 
-                        Opacity = 0.7
-                    };
-
-                    Canvas.SetLeft(border, offsetX);
-                    Canvas.SetTop(border, offsetY);
-                    Panel.SetZIndex(border, -10);
-                    collagecanvas.Children.Add(border);
                     if (currentLayers.Any())
                     {
                         foreach (var layer in currentLayers)
@@ -401,7 +434,21 @@ namespace micpix.View.Windows
                             }
                         }
                     }
-                    
+
+                    Rectangle border = new Rectangle
+                    {
+                        Width = currentCollage.Width * scale,
+                        Height = currentCollage.Height * scale,
+                        Stroke = Brushes.Black,
+                        StrokeThickness = 1,
+                        StrokeDashArray = new DoubleCollection() { 5, 5 },
+                        Opacity = 0.7
+                    };
+
+                    Canvas.SetLeft(border, offsetX);
+                    Canvas.SetTop(border, offsetY);
+                    Panel.SetZIndex(border, -10);
+                    collagecanvas.Children.Add(border);
                     //MessageBox.Show($"{collagecanvas.Children.Count} слоев на рендер");
                 }
                 catch (Exception ex)
@@ -467,7 +514,7 @@ namespace micpix.View.Windows
             }
         }
 
-        private static async Task RenderCollageGifAsync(Collages collage, IProgress<double> progress = null, bool updatepreview = false, int outputFps = 30, string outputPath = null)
+        private static async Task RenderCollageGifAsync(Collages collage, IProgress<double> progress = null, bool updatepreview = false, int outputFps = 30)
         {
             await Task.Run(async () =>
             {
@@ -537,20 +584,31 @@ namespace micpix.View.Windows
                         using (var layerFrame = (MagickImage)collection[frameToUse].Clone())
                         {
                             layerFrame.BackgroundColor = MagickColors.Transparent;
-                            layerFrame.VirtualPixelMethod = VirtualPixelMethod.Transparent;
+                            layerFrame.VirtualPixelMethod = VirtualPixelMethod.Background;
                             if (layer.XScale != 100 || layer.YScale != 100)
                             {
                                 int newWidth = (int)(layerFrame.Width * (double)layer.XScale / 100);
                                 int newHeight = (int)(layerFrame.Height * (double)layer.YScale / 100);
                                 layerFrame.Resize(new MagickGeometry((uint)newWidth, (uint)newHeight)
                                 {
-                                    IgnoreAspectRatio = true  // THIS IS THE KEY
+                                    IgnoreAspectRatio = true  
                                 });//(uint)newWidth, (uint)newHeight);
                             }
 
                             if (layer.Rotation != 0)
                             {
+                                //uint originalWidth = layerFrame.Width;
+                                //uint originalHeight = layerFrame.Height;
+
                                 layerFrame.Rotate((double)layer.Rotation);
+
+                                //uint newWidth = layerFrame.Width;
+                                //uint newHeight = layerFrame.Height;
+
+                                //int dx = (int)(newWidth - originalWidth) / 2;
+                                //int dy = (int)(newHeight - originalHeight) / 2;
+
+                                //layerFrame.Page = new MagickGeometry(-dx, -dy, newWidth, newHeight);
                             }
 
                             if (layer.Opacity < 1.00m)
@@ -566,7 +624,7 @@ namespace micpix.View.Windows
                     }
 
                     frameCanvas.AnimationDelay = (uint)outputFrameDelayMs / 10; // 1/100 секунды
-                    frameCanvas.Trim();
+                    //frameCanvas.Trim();
                     frameCanvas.GifDisposeMethod = GifDisposeMethod.Background;
                     result.Add(frameCanvas);
                     if (progress != null)
@@ -584,18 +642,47 @@ namespace micpix.View.Windows
 
                 result.Coalesce();
                 result.Optimize();
-                string fullOutputPath;
-                if (outputPath == null)
+                string fullOutputPath, dbOutputPath;
+                try
                 {
                     string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-                    outputPath = $"/Source/Previews/Collage_{collage.Id}_{timestamp}.gif";
-                    fullOutputPath = System.IO.Path.Combine(projectDir, outputPath.TrimStart('/').Replace('/', '\\'));
+                    dbOutputPath = $"/Source/Previews/Collage_{collage.Id}_{timestamp}.gif";
+                    fullOutputPath = System.IO.Path.Combine(projectDir, dbOutputPath.TrimStart('/').Replace('/', '\\'));
+                    result.Write(fullOutputPath);
+
+                    SaveFileDialog saveFileDialog = new SaveFileDialog();
+                    saveFileDialog.Title = "Экспортировать результат";
+                    saveFileDialog.Filter = "GIF Image|*.gif";
+                    saveFileDialog.FileName = $"{collage.Title}.gif"; 
+                    saveFileDialog.DefaultExt = ".gif";
+                    saveFileDialog.AddExtension = true;
+
+                    bool? dialogResult = saveFileDialog.ShowDialog();
+
+                    if (dialogResult == true)
+                    {
+                        string userSelectedPath = saveFileDialog.FileName;
+                        try
+                        {
+                            File.Copy(fullOutputPath, userSelectedPath, overwrite: true);
+                            MessageBox.Show($"Успешно сохранено в: {System.IO.Path.GetFileName(userSelectedPath)}",
+                                          "Успех",
+                                          MessageBoxButton.OK,
+                                          MessageBoxImage.Information);
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show($"Не удалось сохранить файл: {ex.Message}, проверьте резервную копию в {fullOutputPath}", "Ошибка",
+                                          MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
+                    }
+
                 }
-                else
+                catch (Exception copyEx)
                 {
-                    fullOutputPath = System.IO.Path.Combine(projectDir, outputPath.TrimStart('/').Replace('/', '\\'));
+                    MessageBox.Show($"Ошибка при сохранении: {copyEx.Message}, проверьте выбранную директорию");
+                    return;
                 }
-                result.Write(fullOutputPath);
                 if (updatepreview)
                 {
                     try
@@ -603,7 +690,7 @@ namespace micpix.View.Windows
                         var resultGif = new ResultGIFs
                         {
                             CollageId = collage.Id,
-                            FilePath = outputPath, 
+                            FilePath = dbOutputPath, 
                             FrameCount = totalOutputFrames,
                             CreatedAt = DateTime.Now
                         };
@@ -651,6 +738,67 @@ namespace micpix.View.Windows
             }
 
             return gif.Count - 1; // последний кадр если ничего не получилось
+        }
+
+        public void PopulateCategoryTree(MenuItem cattree)
+        {
+            categoryTree.Items.Clear();
+
+            var allCategories = db.Categories.ToList();
+            lookup = allCategories.ToLookup(c => c.ParentId);
+
+            foreach (var rootCategory in lookup[null])
+            {
+                var node = new TreeViewItem
+                {
+                    Header = rootCategory.Name,
+                    Tag = rootCategory.Id
+                };
+                categoryTree.Items.Add(node);
+                AddChildNodesRecursive(node, lookup, rootCategory.Id);
+            }
+
+            categoryTree.SelectedItemChanged += CategoryTree_SelectedItemChanged;
+        }
+
+        private void CategoryTree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            if (categoryTree.SelectedItem is TreeViewItem selectedNode)
+            {
+                cattree.Header = $"{selectedNode.Header}";
+                categoryId = (int)selectedNode.Tag;
+                FilterResources();
+            }
+        }
+
+        private void BuildDescendantIds(int parentId, ILookup<int?, Categories> lookup, List<int> result)
+        {
+            foreach (var child in lookup[parentId])
+            {
+                result.Add(child.Id);
+                BuildDescendantIds(child.Id, lookup, result);
+            }
+        }
+
+        private void AddChildNodesRecursive(TreeViewItem parentNode, ILookup<int?, Categories> lookup, int parentId)
+        {
+            foreach (var child in lookup[parentId])
+            {
+                TreeViewItem childNode = CreateTreeNode(child);
+                parentNode.Items.Add(childNode);
+                AddChildNodesRecursive(childNode, lookup, child.Id);
+            }
+        }
+        private TreeViewItem CreateTreeNode(Categories category)
+        {
+            TreeViewItem node = new TreeViewItem
+            {
+                FontSize = 14,
+                Header = category.Name,
+                Tag = category.Id,
+            };
+            //node.Click += MenuItem_Click;
+            return node;
         }
 
         private void LoadResources()
@@ -724,24 +872,29 @@ namespace micpix.View.Windows
             }
         }
 
-        private void SearchAssets(object sender, TextChangedEventArgs e)
+        private void SearchAssets(object sender = null, TextChangedEventArgs e = null)
         {
-            string querytext = restextbox.Text;
+            resquerytext = restextbox.Text;
+            FilterResources();
+        }
 
-            if (querytext.Trim() != null)
+        private void FilterResources()
+        {
+            resset = db.ResourcesSet.Include(r => r.Author).Include(r => r.Tags).ThenInclude(t => t.Category);
+            resset_filtered = resset;
+            if (resquerytext != null && resquerytext.Trim() != null)
             {
-                resset = db.ResourcesSet.Include(r => r.Author);
-
                 resset_filtered = resset.Where(resource =>
 
-                    resource.Title.Contains(querytext, StringComparison.OrdinalIgnoreCase)
-
+                    resource.Title.Contains(resquerytext, StringComparison.OrdinalIgnoreCase)
                 );
             }
-            else
+            if (categoryId != null && categoryId > 1)
             {
-                resset = db.ResourcesSet.Include(r => r.Author);
-                resset_filtered = resset;
+                List<int> categoryIds = new List<int> { categoryId };
+                BuildDescendantIds(categoryId, lookup, categoryIds);
+
+                resset_filtered = resset_filtered.Where(r => r.Tags.Any(rt => categoryIds.Contains(rt.CategoryId)));
             }
             LoadResources();
         }
@@ -750,7 +903,7 @@ namespace micpix.View.Windows
         {
             if (uploadWindow == null || !uploadWindow.IsLoaded)
             {
-                uploadWindow = new resourceuploadwindow();
+                uploadWindow = new ResourceUploadWindow();
                 uploadWindow.Show();
             }
             else
@@ -769,6 +922,19 @@ namespace micpix.View.Windows
         {
             if (a == 0 || b == 0) return 0;
             return Math.Abs(a * b) / GCD(a, b);
+        }
+
+        private void fpsbox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (currentCollage == null) return;
+            if (uint.TryParse(fpsbox.Text, out uint x))
+            {
+                fps = (int)x;
+            }
+            else
+            {
+                fpsbox.Text = new string(targetx.Text.Where(char.IsDigit).ToArray());
+            }
         }
 
         private static int GCD(int a, int b)
@@ -853,8 +1019,8 @@ namespace micpix.View.Windows
                 LoadingProgressBar.Value = percent * 100;
                 StatusText.Content = $"Сохранение: {percent:P0}";
             });
-
-            await RenderCollageGifAsync(currentCollage, progress, true); 
+            
+            await RenderCollageGifAsync(currentCollage, progress, true, fps);
         }
 
         private void InitializeLayerTextHandlers()

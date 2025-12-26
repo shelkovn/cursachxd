@@ -24,7 +24,7 @@ namespace WpfApp1
     /// </summary>
     public partial class MainWindow : Window
     {
-        private resourceuploadwindow uploadWindow;
+        private ResourceUploadWindow uploadWindow;
         public CollageMakerWindow collageWindow;
         private LoginWindow loginWindow;
         static AppDbContext db = new AppDbContext ();
@@ -183,7 +183,7 @@ namespace WpfApp1
             {
                 if (uploadWindow == null || !uploadWindow.IsLoaded)
                 {
-                    uploadWindow = new resourceuploadwindow();
+                    uploadWindow = new ResourceUploadWindow();
                     uploadWindow.Show();
                 }
                 else
@@ -265,8 +265,8 @@ namespace WpfApp1
 
         private void SearchAssets(object sender = null, TextChangedEventArgs e = null)
         {
-            resquerytext = restextbox.Text; 
-            LoadResources();
+            resquerytext = restextbox.Text;
+            FilterResources();
         }
 
         private void FilterResources()
